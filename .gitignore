@@ -1,0 +1,12 @@
+
+*.cof
+*.o
+*.d
+*.err
+*.lst
+**/html
+firmware/doc/html/**
+firmware/FW335.X/build/**
+firmware/FW335.X/debug/**
+firmware/FW335.X/dist/**
+firmware/FW335.X/.generated_files/**
