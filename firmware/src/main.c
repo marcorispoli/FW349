@@ -111,6 +111,7 @@ int main ( void )
             trigger_time &=~ _15_64_ms_TriggerTime;      
             
             rtcStarter15msCallback();
+            rtcExposure15msCallback();
         }
         
        

@@ -56,12 +56,12 @@
 #include "peripheral/nvic/plib_nvic.h"
 #include "peripheral/wdt/plib_wdt.h"
 #include "peripheral/cmcc/plib_cmcc.h"
-#include "peripheral/can/plib_can0.h"
 #include "peripheral/adc/plib_adc1.h"
+#include "peripheral/can/plib_can0.h"
 #include "peripheral/sercom/i2c_master/plib_sercom4_i2c_master.h"
-#include "peripheral/rtc/plib_rtc.h"
+#include "peripheral/tc/plib_tc1.h"
 #include "peripheral/tc/plib_tc0.h"
-#include "peripheral/dac/plib_dac.h"
+#include "peripheral/rtc/plib_rtc.h"
 
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility

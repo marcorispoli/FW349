@@ -1,21 +1,25 @@
 /*******************************************************************************
-  Digital-to-Analog Converter (DAC) PLIB
+  Timer/Counter(TC1) PLIB
 
-  Company:
+  Company
     Microchip Technology Inc.
 
-  File Name:
-    plib_dac.h
+  File Name
+    plib_tc1.h
 
-  Summary:
-    DAC PLIB Header file
+  Summary
+    TC1 PLIB Header File.
 
-  Description:
-    This file defines the interface to the DAC peripheral library. This
+  Description
+    This file defines the interface to the TC peripheral library. This
     library provides access to and control of the associated peripheral
     instance.
 
+  Remarks:
+    None.
+
 *******************************************************************************/
+
 // DOM-IGNORE-BEGIN
 /*******************************************************************************
 * Copyright (C) 2018 Microchip Technology Inc. and its subsidiaries.
@@ -41,8 +45,8 @@
 *******************************************************************************/
 // DOM-IGNORE-END
 
-#ifndef PLIB_DAC_H
-#define PLIB_DAC_H
+#ifndef PLIB_TC1_H      // Guards against multiple inclusion
+#define PLIB_TC1_H
 
 // *****************************************************************************
 // *****************************************************************************
@@ -52,31 +56,69 @@
 /* This section lists the other files that are included in this file.
 */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "device.h"
+#include "plib_tc_common.h"
 
-#ifdef __cplusplus // Provide C++ Compatibility
-extern "C" {
+// DOM-IGNORE-BEGIN
+#ifdef __cplusplus // Provide C Compatibility
+
+    extern "C" {
+
 #endif
+// DOM-IGNORE-END
 
-typedef enum
-{
-    /* Channel 0 */
-    DAC_CHANNEL_0,
+// *****************************************************************************
+// *****************************************************************************
+// Section: Data Types
+// *****************************************************************************
+// *****************************************************************************
+/* The following data type definitions are used by the functions in this
+    interface and should be considered part it.
+*/
 
-    /* Channel 1 */
-    DAC_CHANNEL_1
-} DAC_CHANNEL_NUM;
+// *****************************************************************************
+// *****************************************************************************
+// Section: Interface Routines
+// *****************************************************************************
+// *****************************************************************************
+/* The following functions make up the methods (set of possible operations) of
+   this interface.
+*/
 
-void DAC_Initialize (void);
-void DAC_DataWrite (DAC_CHANNEL_NUM channel, uint16_t data);
+// *****************************************************************************
+
+void TC1_TimerInitialize( void );
+
+void TC1_TimerStart( void );
+
+void TC1_TimerStop( void );
+
+uint32_t TC1_TimerFrequencyGet( void );
 
 
-bool DAC_IsReady (DAC_CHANNEL_NUM channel);
+void TC1_Timer16bitPeriodSet( uint16_t period );
 
+uint16_t TC1_Timer16bitPeriodGet( void );
+
+uint16_t TC1_Timer16bitCounterGet( void );
+
+void TC1_Timer16bitCounterSet( uint16_t count );
+
+
+
+
+void TC1_TimerCallbackRegister( TC_TIMER_CALLBACK callback, uintptr_t context );
+
+
+void TC1_TimerCommandSet(TC_COMMAND command);
+
+
+// DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility
-}
-#endif
 
-#endif /* PLIB_DAC_H */
+    }
+
+#endif
+// DOM-IGNORE-END
+
+#endif /* PLIB_TC1_H */

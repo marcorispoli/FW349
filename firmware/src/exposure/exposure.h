@@ -71,10 +71,17 @@ typedef enum {
     EXPSTAT_XRAY_ON,
     EXPSTAT_WAIT_DATA,
     EXPSTAT_COMPLETED,           
+}_EXPOSURE_STAT_FLAG;
+
+typedef struct exposure_status{    
+    _EXPOSURE_STAT_FLAG status_flag;
+    int sequence;
 }_EXPOSURE_STAT;
+
 
 typedef enum {
     EXPERR_NONE = 0,    
+    EXPERR_BUTTON_RELEASE,    
 }_EXPOSURE_ERROR;
 
 
@@ -98,12 +105,16 @@ typedef struct exposure_result{
     int mAs_pulse; //!< Total mAs exposed in the pulse    
 }_EXPOSURE_RESULT;
 
+typedef struct exposure_io{    
+    bool xray_request_button;
+}_EXPOSURE_IO;
 
 typedef struct exposure{
     
     _EXPOSURE_MODE          mode; //!< Defines what kind of exposure has been selected
     _EXPOSURE_OPTIONS       options; //!< Defines what options are selected for the incoming expsure
     _EXPOSURE_DIAG_OPTIONS  diagnostic_options; //!< Defines what diagnostic options are selected for the incoming exposure
+    _EXPOSURE_IO            gpio; //!< Status of the gpipo related with the module
     
     _EXPOSURE_DATA          data;//!< Data related to the incoming exposure mode
     _EXPOSURE_STAT          status; //!< Defines what diagnostic options are selected for the incoming exposure
@@ -118,7 +129,13 @@ ext _EXPOSURE_Struct EXPOSURE_Data;
  * Module Initialization
  */
 ext void ExposureInit (void);
+ext void rtcExposure15msCallback(void);
 
+ext bool ExposureStartManual2D();
+ext void Exposure2DManualSequence(TC_TIMER_STATUS status, uintptr_t context);
+
+
+ext void ExposureCompleted(_EXPOSURE_ERROR code);
 
 // End Module Definition
 #endif 

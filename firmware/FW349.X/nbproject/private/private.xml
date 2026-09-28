@@ -3,9 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/GIT/FW/FW349/firmware/src/analog/analog.c</file>
             <file>file:/D:/GIT/FW/FW349/firmware/src/main.c</file>
-            <file>file:/D:/GIT/FW/FW349/firmware/src/analog/analog.h</file>
+            <file>file:/D:/GIT/FW/FW349/firmware/src/exposure/exposure.h</file>
+            <file>file:/D:/GIT/FW/FW349/firmware/src/masmeter/mas.c</file>
+            <file>file:/D:/GIT/FW/FW349/firmware/src/exposure/exposure.c</file>
+            <file>file:/D:/GIT/FW/FW349/firmware/src/exposure/exp2d.c</file>
         </group>
     </open-files>
 </project-private>

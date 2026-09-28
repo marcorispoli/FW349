@@ -63,6 +63,7 @@ void RTC_InterruptHandler (void);
 void SERCOM4_I2C_InterruptHandler (void);
 void CAN0_InterruptHandler (void);
 void TC0_TimerInterruptHandler (void);
+void TC1_TimerInterruptHandler (void);
 void ADC0_RESRDY_InterruptHandler (void);
 void ADC1_RESRDY_InterruptHandler (void);
 
