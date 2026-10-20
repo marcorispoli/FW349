@@ -12,5 +12,8 @@ void MasInit(void){
     
     TC0_TimerCallbackRegister( MasCallback, 0 );
     TC0_TimerStart();
+    
+    // Inizializza il test 
+    uC_TEST_mAs_Set();
 }
 

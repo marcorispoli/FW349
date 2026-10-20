@@ -10,6 +10,7 @@
  * 
  */
 
-static void Exposure2DManualSequence(TC_TIMER_STATUS status, uintptr_t context){
+
+void Exposure2DManualSequence(TC_TIMER_STATUS status, uintptr_t context){
 
 }

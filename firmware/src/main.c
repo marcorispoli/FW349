@@ -67,9 +67,15 @@ int main ( void )
     // Exposure Module Initialization
     ExposureInit();
     
+
+    uC_USE_GRID_Clear();
+    uC_HV_ENA_Set();
     
     while( true )
     {
+        if(uC_HVENA_STATUS_Get()) LED_FLT_Set();
+        else LED_FLT_Clear();
+        
         /* Maintain state machines of all polled MPLAB Harmony modules. */
         SYS_Tasks ( );
         
