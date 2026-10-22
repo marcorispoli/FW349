@@ -135,15 +135,15 @@ void SYS_Initialize ( void* data )
 
     ADC0_Initialize();
     ADC1_Initialize();
-    CAN0_Initialize();
+    SERCOM4_SPI_Initialize();
 
-    SERCOM4_I2C_Initialize();
+    CAN0_Initialize();
 
     TC1_TimerInitialize();
 
-    TC0_TimerInitialize();
-
     RTC_Initialize();
+
+    TC0_TimerInitialize();
 
 
 

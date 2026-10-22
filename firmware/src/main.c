@@ -71,10 +71,14 @@ int main ( void )
     uC_USE_GRID_Clear();
     uC_HV_ENA_Set();
     
+    
+    // TEst SPI
+    
+    
+    
     while( true )
     {
-        if(uC_HVENA_STATUS_Get()) LED_FLT_Set();
-        else LED_FLT_Clear();
+       
         
         /* Maintain state machines of all polled MPLAB Harmony modules. */
         SYS_Tasks ( );
@@ -118,6 +122,9 @@ int main ( void )
             
             rtcStarter15msCallback();
             rtcExposure15msCallback();
+            
+            if(GeneratorHvrefSet(HVREF_GAINx2|HVREF_RUN, 0xEFF)) LED_FLT_Set();
+            else LED_FLT_Clear();
         }
         
        

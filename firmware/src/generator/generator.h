@@ -65,6 +65,11 @@ ext _GENERATOR_Struct _GENERATOR_Data;
  */
 ext void GeneratorInit (void);
 
+#define HVREF_SHTD     0x00
+#define HVREF_RUN      0x10
+#define HVREF_GAINx1   0x20
+#define HVREF_GAINx2   0x00
+ext bool GeneratorHvrefSet(unsigned char ctrl, unsigned short value );
 // End Module Definition
 #endif 
     
