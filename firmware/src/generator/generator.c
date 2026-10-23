@@ -33,4 +33,25 @@ static void HVSENS_Init (void){
 void GeneratorInit(void){
     HVBUS_Init();
     HVSENS_Init();
+    
+    // Inizializza SPI
+    uC_CS_Set();
+}
+
+
+bool  GeneratorHvrefSet(unsigned char ctrl, unsigned short value ){
+    
+    unsigned char buffer[2];
+    bool result = false;
+    
+    buffer[0] = (ctrl&0xF0);
+    //buffer[0] |= ((value>>8) & 0x0F);
+    // = (value & 0xff);
+    buffer[0] |= 0x8;
+    buffer[1] = 0xFF;
+    uC_CS_Clear();
+    result = SERCOM4_SPI_Write((void*) buffer, 2);
+    uC_CS_Set();  
+    
+    return result;
 }
