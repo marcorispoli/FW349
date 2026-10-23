@@ -123,8 +123,7 @@ int main ( void )
             rtcStarter15msCallback();
             rtcExposure15msCallback();
             
-            if(GeneratorHvrefSet(HVREF_GAINx2|HVREF_RUN, 0xEFF)) LED_FLT_Set();
-            else LED_FLT_Clear();
+         
         }
         
        

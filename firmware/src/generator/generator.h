@@ -70,6 +70,18 @@ ext void GeneratorInit (void);
 #define HVREF_GAINx1   0x20
 #define HVREF_GAINx2   0x00
 ext bool GeneratorHvrefSet(unsigned char ctrl, unsigned short value );
+
+/**
+ * Sets the Voltage Reference based on the requested ouput HV Volage.
+ * 
+ * @param kv: Output voltage in Volt
+ * @return 
+ * + true: ok
+ * + false: dac writing error or invalid voltage request
+ */
+ext bool GeneratorHVSet(float kv );
+
+
 // End Module Definition
 #endif 
     
