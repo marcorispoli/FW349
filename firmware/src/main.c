@@ -75,11 +75,19 @@ int main ( void )
     // TEst SPI
     
     
-    
+    GeneratorHVSet(30.0);
     while( true )
     {
+       if(uC_SYNC_GRID_ENA_Get()) LED_EXP_Set();
+       else LED_EXP_Clear();
+
+       if(uC_SYNC_EW_Get()) LED_FLT_Set();
+       else LED_FLT_Clear();
        
-        
+       if(uC_SYNC_nREQ_Get()) LED_HVENA_Set();
+       else LED_HVENA_Clear();
+       
+       
         /* Maintain state machines of all polled MPLAB Harmony modules. */
         SYS_Tasks ( );
         
@@ -91,6 +99,9 @@ int main ( void )
             trigger_time &=~ _1024_ms_TriggerTime;            
                         
             VITALITY_LED_Toggle();
+            
+            
+            
             
             
             /*
@@ -123,7 +134,9 @@ int main ( void )
             rtcStarter15msCallback();
             rtcExposure15msCallback();
             
-         
+            uC_SYNC_PREP_Toggle();
+            uC_SYNC_HVON_Toggle();
+            uC_SYNC_START_GRID_Toggle();
         }
         
        
