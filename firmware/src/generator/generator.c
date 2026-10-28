@@ -123,6 +123,7 @@ float GeneratorHVCorrectionFactor(float kv ){
  */
 bool GeneratorHVSet(float kv ){
     unsigned short N;
+    return GeneratorHvrefSetG2(1024);
     
     // Calcolo N con Gain = 2 e con eventuale correzione introdotta da calibrazione;
     N = (unsigned short) (GeneratorHVCorrectionFactor(kv) * ((kv / 20.91) - 5.82));
