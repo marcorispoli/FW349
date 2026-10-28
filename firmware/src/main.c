@@ -67,25 +67,10 @@ int main ( void )
     // Exposure Module Initialization
     ExposureInit();
     
-
-    uC_USE_GRID_Clear();
-    uC_HV_ENA_Set();
     
-    
-    // TEst SPI
-    
-    
-    GeneratorHVSet(30.0);
     while( true )
     {
-       if(uC_SYNC_GRID_ENA_Get()) LED_EXP_Set();
-       else LED_EXP_Clear();
-
-       if(uC_SYNC_EW_Get()) LED_FLT_Set();
-       else LED_FLT_Clear();
-       
-       if(uC_SYNC_nREQ_Get()) LED_HVENA_Set();
-       else LED_HVENA_Clear();
+      
        
        
         /* Maintain state machines of all polled MPLAB Harmony modules. */
@@ -99,17 +84,6 @@ int main ( void )
             trigger_time &=~ _1024_ms_TriggerTime;            
                         
             VITALITY_LED_Toggle();
-            
-            
-            
-            
-            
-            /*
-             // Legge temperatura da I2 bus            
-            SERCOM4_I2C_WriteRead(0x48, &comando, 1, &temperature, 1);
-            SystemStatusRegister.temperature = temperature;
-            encodeStatusRegister(&SystemStatusRegister);
-            */
             
             
         }     
@@ -134,9 +108,7 @@ int main ( void )
             rtcStarter15msCallback();
             rtcExposure15msCallback();
             
-            uC_SYNC_PREP_Toggle();
-            uC_SYNC_HVON_Toggle();
-            uC_SYNC_START_GRID_Toggle();
+          
         }
         
        

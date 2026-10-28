@@ -43,12 +43,32 @@
 
 
 
+typedef enum {
+    STARTER_STOP = 0,
+    STARTER_RESET_FAULT,
+    STARTER_RUN_HS,
+    STARTER_RUN_LS,
+}_STARTER_COMMANDS;
+
+typedef struct cmdstruct{
+    int blanking_timer;
+    int attempt; 
+    unsigned char sequence;
+    _STARTER_COMMANDS cmd;
+    bool executed;
+}_COMMAND_DATA;
+
 typedef struct starter{
-    
+
+    bool fault;
+    bool speed_ok;
+    int stop_timer;
+    _COMMAND_DATA command;
     
 }_STARTER_Struct;
 
-ext _STARTER_Struct STARTER_Data;
+ext _STARTER_Struct _Starter_Data;
+
 
 /**
  * Module Initialization
@@ -56,7 +76,8 @@ ext _STARTER_Struct STARTER_Data;
 ext void StarterInit (void);
 ext void rtcStarter15msCallback(void);
 
-
+ext void StarterResetFault(void);
+ext bool StarterHsRun(void);
 
 
 

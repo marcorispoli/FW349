@@ -118,15 +118,15 @@ float GeneratorHVCorrectionFactor(float kv ){
  * N = Vreference_3841 * 1000 / 2 = (Vo/87 - 1.4) * 8.32 / 2 
  * N = (Vo / 20,91 - 5,82)
  * 
- * @param kv: target output voltage
+ * @param kv: target output voltage (kV)
  * @return 
  */
 bool GeneratorHVSet(float kv ){
     unsigned short N;
-    return GeneratorHvrefSetG2(1024);
+    
     
     // Calcolo N con Gain = 2 e con eventuale correzione introdotta da calibrazione;
-    N = (unsigned short) (GeneratorHVCorrectionFactor(kv) * ((kv / 20.91) - 5.82));
+    N = (unsigned short) (GeneratorHVCorrectionFactor(kv) * ((kv * 1000 / 20.91) - 5.82));
     return GeneratorHvrefSetG2(N);
     
 }
