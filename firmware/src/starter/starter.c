@@ -104,24 +104,23 @@ void StarterHandleResetFault(void){
         case 1:
             // Set FREERUN
             uC_STARTER_FREERUN_Set();
-            _Starter_Data.blanking_timer = 2; // Attende 30ms
-            
-            _Starter_Data.command_sequence++;            
+            _Starter_Data.command.blanking_timer = 2; // Attende 30ms            
+            _Starter_Data.command.sequence++;            
             break;
             
         case 2:
             if(_Starter_Data.fault){
-                if(_Starter_Data.command_attempt ){
+                if(_Starter_Data.command.attempt ){
                     // Ripete la sequenza dopo circa 100ms
-                    _Starter_Data.command_attempt--;
-                    _Starter_Data.command_sequence = 0;
-                    _Starter_Data.blanking_timer = 7;
+                    _Starter_Data.command.attempt--;
+                    _Starter_Data.command.sequence = 0;
+                    _Starter_Data.command.blanking_timer = 7;
                     break;
                 }
             }
             
             // Fine sequenza
-            _Starter_Data.current_command = STARTER_STOP;
+            _Starter_Data.command.cmd = STARTER_STOP;
             uC_STARTER_RUN_Clear();
             uC_STARTER_FREERUN_Clear();
             break;
@@ -131,14 +130,14 @@ void StarterHandleResetFault(void){
 bool StarterHsRun(void){
     
     // Il comando è già in esecuzione
-    if(_Starter_Data.current_command == STARTER_RUN_HS) return true;
+    if(_Starter_Data.command.cmd == STARTER_RUN_HS) return true;
     
-    _Starter_Data.command_sequence = 0;
+    _Starter_Data.command.sequence = 0;
     _Starter_Data.speed_ok = false;    
-    _Starter_Data.current_command = STARTER_RUN_HS;
-    _Starter_Data.command_attempt = 1;
+    _Starter_Data.command.cmd = STARTER_RUN_HS;
+    _Starter_Data.command.attempt = 1;
     
-    return;
+    return true;
 }
 
 void StarterHandleHsRun(void){

@@ -62,8 +62,8 @@ typedef struct {
 /// \ingroup CANPROT 
 /// Protocol Definition Data
 typedef enum{
-    MET_CAN_APP_DEVICE_ID    =  0x12,      //!< Application DEVICE CAN Id address
-    MET_CAN_STATUS_REGISTERS =  3,        //!< Defines the total number of implemented STATUS registers 
+    MET_CAN_APP_DEVICE_ID    =  0x19,      //!< Application DEVICE CAN Id address
+    MET_CAN_STATUS_REGISTERS =  1,        //!< Defines the total number of implemented STATUS registers 
     MET_CAN_DATA_REGISTERS   =  0,        //!< Defines the total number of implemented Application DATA registers 
     MET_CAN_PARAM_REGISTERS  =  0       //!< Defines the total number of implemented PARAMETER registers 
 }PROTOCOL_DEFINITION_DATA_t;
@@ -124,51 +124,22 @@ ext void decodeParamRegister(void* reg);
 /// \ingroup CANPROT
 /// Defines the address table for the System Registers 
 typedef enum{
-    SYSTEM_STATUS_IDX = 0, //!< This is the Collimator internal status    
-    SYSTEM_AC_INPUT_IDX,   //!< Input measurement
-    SYSTEM_DC_OUTPUT_IDX,   //!< Output measurement
+    SYSTEM_STATUS_IDX = 0, //!< This is the Collimator internal status        
 }STATUS_INDEX_t;
 
     typedef struct {
         const unsigned char idx; //!< Address constant 
 
-        unsigned char temperature;  //!< This is the temperature of the Power Mosfets
-        unsigned char enable_contactor:1;
-        unsigned char enable_precharge:1;
-        unsigned char enable_discharge:1;
-        unsigned char d1_spare:5;
+        unsigned char d0; 
+        unsigned char d1; 
         unsigned char d2; 
         unsigned char d3; 
     }SYSTEM_STATUS_t;
     
-    typedef struct {
-        const unsigned char idx; //!< Address constant 
-
-        unsigned char  max_ac_L;      //!< Voltage Pick Low Byte
-        unsigned char  max_ac_H;      //!< Voltage Pick High Byte
-        unsigned char  frequency;   //!< Voltage Frequency
-        unsigned char  d3;        
-    }SYSTEM_AC_INPUT_t;
-    
-    typedef struct {
-        const unsigned char idx; //!< Address constant 
-
-        unsigned char  vout_L;      //!< Voltage Low Byte
-        unsigned char  vout_H;      //!< Voltage High Byte
-        unsigned char  iout_L;      //!< IOut Low Byte
-        unsigned char  iout_H;      //!< Iout High Byte
-    }SYSTEM_DC_OUTPUT_t;
-
-   
-    
     #ifdef _PROTOCOL_C       
         SYSTEM_STATUS_t SystemStatusRegister = {.idx=SYSTEM_STATUS_IDX};
-        SYSTEM_AC_INPUT_t SystemACInputRegister = {.idx=SYSTEM_AC_INPUT_IDX};
-        SYSTEM_DC_OUTPUT_t SystemDCOutRegister = {.idx=SYSTEM_DC_OUTPUT_IDX};
     #else
         extern SYSTEM_STATUS_t SystemStatusRegister;
-        extern SYSTEM_AC_INPUT_t SystemACInputRegister;
-        extern SYSTEM_DC_OUTPUT_t SystemDCOutRegister;
     #endif  
         
         
