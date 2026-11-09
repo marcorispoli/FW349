@@ -133,11 +133,11 @@ void SYS_Initialize ( void* data )
 
     EVSYS_Initialize();
 
-    ADC0_Initialize();
-    ADC1_Initialize();
     SERCOM4_SPI_Initialize();
 
     CAN0_Initialize();
+
+    EIC_Initialize();
 
     TC1_TimerInitialize();
 
@@ -145,6 +145,10 @@ void SYS_Initialize ( void* data )
 
     TC0_TimerInitialize();
 
+    TC2_TimerInitialize();
+
+    ADC0_Initialize();
+    ADC1_Initialize();
 
 
 

@@ -141,10 +141,6 @@
 #define uC_HV_ENA_Get()               (((PORT_REGS->GROUP[0].PORT_IN >> 4U)) & 0x01U)
 #define uC_HV_ENA_PIN                  PORT_PIN_PA04
 
-/*** Macros for uC_mAs pin ***/
-#define uC_mAs_Get()               (((PORT_REGS->GROUP[0].PORT_IN >> 5U)) & 0x01U)
-#define uC_mAs_PIN                  PORT_PIN_PA05
-
 /*** Macros for LED_MS2 pin ***/
 #define LED_MS2_Set()               (PORT_REGS->GROUP[0].PORT_OUTSET = ((uint32_t)1U << 7U))
 #define LED_MS2_Clear()             (PORT_REGS->GROUP[0].PORT_OUTCLR = ((uint32_t)1U << 7U))

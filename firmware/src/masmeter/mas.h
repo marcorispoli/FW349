@@ -45,6 +45,9 @@
 
 typedef struct masmeter{
     
+    bool mas_test_status; //!< Status of the test current activation
+    unsigned short  mas_count;       //!< Number of counted pulses in a integration slot
+    unsigned short  anodic_current; //!< Estimated anodi current in the integration slot
     
 }_MAS_Struct;
 
@@ -54,7 +57,7 @@ ext _MAS_Struct MAS_Data;
  * Module Initialization
  */
 ext void MasInit (void);
-
+ext void rtcMas15msCallback(void);
 
 
 
