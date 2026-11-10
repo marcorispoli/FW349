@@ -434,6 +434,27 @@ uint8_t  MET_Can_Protocol_GetParameter(uint8_t idx, uint8_t data_index){
 }
 
 /**
+ * This function set the whole content of a STATUS register
+ * 
+ * 
+ * @param idx index of the register
+ * @param data_index index of the register data [0:3]
+ * @param val value to be assigned
+ * 
+ */
+void  MET_Can_Protocol_SetParameter(uint8_t idx, uint8_t data_index, uint8_t val ){
+    if(idx >= MET_Protocol_Data_Struct.applicationParameterArrayLen) return;
+    MET_Protocol_Data_Struct.pApplicationParameterArray[idx].d[data_index] = val;
+    return;
+}
+   
+void  MET_Can_Protocol_StoreParameters(void){
+    for(int i=0; i< MET_Protocol_Data_Struct.applicationParameterArrayLen;i++) SmartEEPROM32[i] = *((uint32_t*) MET_Protocol_Data_Struct.pApplicationParameterArray[i].d) ;    
+    SmartEEPROM32[TEST_EEPROM_INDEX] = SMEE_CUSTOM_SIG;
+    return;
+}
+
+/**
  * This function sets the default value of a parameter
  * 
  * This function will work ONLY if the EEPROM has not yet stored

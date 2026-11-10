@@ -2,6 +2,7 @@
 
 #include "application.h"
 #include "protocol.h"
+#include "../masmeter/mas.h"
 
 
 
@@ -57,7 +58,18 @@ void ApplicationProtocolCommandHandler(uint8_t cmd, uint8_t d0,uint8_t d1,uint8_
             MET_Can_Protocol_returnCommandAborted();
             break;
         
-       
+        case CMD_MAS_AUTO_CALIBRATION:
+            
+            // Conflitto di funzioni abilitate. L'auto calibrazione è attiva solo se 
+            // la corrente di test è attiva.
+            if(SystemDataRegister.activate_mas_test_current == false){ 
+                MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_ENABLED);
+                return;
+            }
+            
+            if(MasAutoCalibration()) MET_Can_Protocol_returnCommandExecuted(0,0);
+            else MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_ENABLED);
+            break;
             
         default:
             MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_AVAILABLE);
@@ -133,4 +145,23 @@ void decodeParamRegister(void* reg){
     ((REGISTER_STRUCT_t*) reg)->d3 = MET_Can_Protocol_GetParameter(register_offset, 3);
     return;
    
+}
+
+/**
+ * This function assign a param register content to the PARAM REGISTER Array of the CAN BUS
+ * 
+ * #Usage
+ * + Define a register structure initialized with the IDX of the STATUS register index;
+ * + Set properly the content of the register.
+ * + Call the function:  encodeParamRegister(&TargetRegister). This call insert the Target register 
+ * content into the CAN PARAM register at the proper IDX.
+ * 
+ * 
+ * @param reg: this is the register structure to be filled with the PARAM register
+ */
+void encodeParamRegister(void* reg){
+    MET_Can_Protocol_SetParameter(((REGISTER_STRUCT_t*) reg)->idx, 0, ((REGISTER_STRUCT_t*) reg)->d0 );
+    MET_Can_Protocol_SetParameter(((REGISTER_STRUCT_t*) reg)->idx, 1, ((REGISTER_STRUCT_t*) reg)->d1 );
+    MET_Can_Protocol_SetParameter(((REGISTER_STRUCT_t*) reg)->idx, 2, ((REGISTER_STRUCT_t*) reg)->d2 );
+    MET_Can_Protocol_SetParameter(((REGISTER_STRUCT_t*) reg)->idx, 3, ((REGISTER_STRUCT_t*) reg)->d3 );
 }

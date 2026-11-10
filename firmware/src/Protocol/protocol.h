@@ -103,6 +103,7 @@ ext void encodeStatusRegister(void* reg);
 /// \ingroup CANPROT 
 /// This is the function to update and decodea Param register with the actual Can Registers content
 ext void decodeParamRegister(void* reg);
+ext void encodeParamRegister(void* reg);
 
 /// \ingroup CANPROT 
 /// This is the function to update and decode Data register with the actual Can Registers content
@@ -136,7 +137,8 @@ typedef enum{
         const unsigned char idx; //!< Address constant 
 
         unsigned char anodic_test_current_activated:1; //!< This is the current test activation status flag
-        unsigned char do_spare:7;
+        unsigned char auto_calibration_activated:1; //!< This is the auto calibration activation status flag
+        unsigned char do_spare:6;
         
         unsigned char d1; 
         unsigned char d2; 
@@ -245,6 +247,7 @@ typedef struct {
 /// This is the list of the implemented COMMANDS
 typedef enum{
    CMD_ABORT = 0,      //!< Abort Command
+   CMD_MAS_AUTO_CALIBRATION //!< Auto Calibration Activation Command
    
 }PROTOCOL_COMMANDS_t;
 

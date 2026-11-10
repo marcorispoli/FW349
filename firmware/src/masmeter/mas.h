@@ -49,6 +49,17 @@ typedef struct masmeter{
     unsigned short  mas_count;       //!< Number of counted pulses in a integration slot
     unsigned short  anodic_current; //!< Estimated anodi current in the integration slot
     
+    // Auto CAlibration Process Management
+    struct autocalibration{
+        bool status;                    //!< Auto Calibration Process Running
+        bool completed;                 //!< Process completion flag
+        unsigned char anodic_current_test;//!< Anodic current used for calibration
+        unsigned long cumulated_pulses; //!< Cumulated pulsig during the integration
+        unsigned char iterations;       //!< Number of iteration slots
+        unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
+    }auto_calibration;
+    
+    unsigned char cycles;
 }_MAS_Struct;
 
 ext _MAS_Struct MAS_Data;
@@ -59,6 +70,7 @@ ext _MAS_Struct MAS_Data;
 ext void MasInit (void);
 ext void rtcMas15msCallback(void);
 
+ext bool MasAutoCalibration(void);
 
 
 

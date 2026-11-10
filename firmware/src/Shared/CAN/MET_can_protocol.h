@@ -555,6 +555,11 @@
         /// This function shall be used to set the Default parameter value 
         ext void  MET_Can_Protocol_SetDefaultParameter(uint8_t idx, uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3);        
 
+        /// Set the content of a parameter
+        ext void  MET_Can_Protocol_SetParameter(uint8_t idx, uint8_t data_index, uint8_t val );
+        
+        ext void  MET_Can_Protocol_StoreParameters(void);
+        
         /// Set the COMMAND EXECUTION return code
         ext void MET_Can_Protocol_returnCommandExecuting(void);
         
