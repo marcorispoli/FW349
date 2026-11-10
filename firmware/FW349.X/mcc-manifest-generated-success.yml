@@ -2,7 +2,7 @@
 
 manifest_file_version: 1.0.0
 project: FW349
-creation_date: 2026-10-22T10:48:59.346+02:00[Europe/Berlin]
+creation_date: 2026-11-09T16:39:03.558+01:00[Europe/Berlin]
 operating_system: Windows 10
 mcc_mode: IDE
 mcc_mode_version: v6.20
@@ -16,5 +16,5 @@ is_using_prerelease_versions: false
 mcc_content_registries: https://registry.npmjs.org/
 device_library: {library_class: com.microchip.mcc.harmony.Harmony3Library, name: Harmony
     V3, version: 1.3.2}
-packs: {name: SAME51_DFP, version: 3.9.267}
+packs: {name: SAME51_DFP, version: 3.10.289}
 modules: []

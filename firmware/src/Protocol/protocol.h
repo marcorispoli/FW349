@@ -62,10 +62,10 @@ typedef struct {
 /// \ingroup CANPROT 
 /// Protocol Definition Data
 typedef enum{
-    MET_CAN_APP_DEVICE_ID    =  0x12,      //!< Application DEVICE CAN Id address
-    MET_CAN_STATUS_REGISTERS =  3,        //!< Defines the total number of implemented STATUS registers 
-    MET_CAN_DATA_REGISTERS   =  0,        //!< Defines the total number of implemented Application DATA registers 
-    MET_CAN_PARAM_REGISTERS  =  0       //!< Defines the total number of implemented PARAMETER registers 
+    MET_CAN_APP_DEVICE_ID    =  0x19,      //!< Application DEVICE CAN Id address
+    MET_CAN_STATUS_REGISTERS =  2,        //!< Defines the total number of implemented STATUS registers 
+    MET_CAN_DATA_REGISTERS   =  1,        //!< Defines the total number of implemented Application DATA registers 
+    MET_CAN_PARAM_REGISTERS  =  1       //!< Defines the total number of implemented PARAMETER registers 
 }PROTOCOL_DEFINITION_DATA_t;
 
 /**
@@ -104,6 +104,10 @@ ext void encodeStatusRegister(void* reg);
 /// This is the function to update and decodea Param register with the actual Can Registers content
 ext void decodeParamRegister(void* reg);
 
+/// \ingroup CANPROT 
+/// This is the function to update and decode Data register with the actual Can Registers content
+ext void decodeDataRegister(void* reg);
+
 //________________________________________ STATUS REGISTER DEFINITION SECTION _
 
 /**
@@ -124,19 +128,17 @@ ext void decodeParamRegister(void* reg);
 /// \ingroup CANPROT
 /// Defines the address table for the System Registers 
 typedef enum{
-    SYSTEM_STATUS_IDX = 0, //!< This is the Collimator internal status    
-    SYSTEM_AC_INPUT_IDX,   //!< Input measurement
-    SYSTEM_DC_OUTPUT_IDX,   //!< Output measurement
+    SYSTEM_STATUS_IDX = 0, //!< This is the System general data status register 
+    MAS_TEST_STATUS_IDX = 1, //!< This is the mAs test related status register
 }STATUS_INDEX_t;
 
     typedef struct {
         const unsigned char idx; //!< Address constant 
 
-        unsigned char temperature;  //!< This is the temperature of the Power Mosfets
-        unsigned char enable_contactor:1;
-        unsigned char enable_precharge:1;
-        unsigned char enable_discharge:1;
-        unsigned char d1_spare:5;
+        unsigned char anodic_test_current_activated:1; //!< This is the current test activation status flag
+        unsigned char do_spare:7;
+        
+        unsigned char d1; 
         unsigned char d2; 
         unsigned char d3; 
     }SYSTEM_STATUS_t;
@@ -144,31 +146,19 @@ typedef enum{
     typedef struct {
         const unsigned char idx; //!< Address constant 
 
-        unsigned char  max_ac_L;      //!< Voltage Pick Low Byte
-        unsigned char  max_ac_H;      //!< Voltage Pick High Byte
-        unsigned char  frequency;   //!< Voltage Frequency
-        unsigned char  d3;        
-    }SYSTEM_AC_INPUT_t;
-    
-    typedef struct {
-        const unsigned char idx; //!< Address constant 
-
-        unsigned char  vout_L;      //!< Voltage Low Byte
-        unsigned char  vout_H;      //!< Voltage High Byte
-        unsigned char  iout_L;      //!< IOut Low Byte
-        unsigned char  iout_H;      //!< Iout High Byte
-    }SYSTEM_DC_OUTPUT_t;
-
-   
+        unsigned char anodic_test_current_L; //!< This is the anodic test evaluated value low byte
+        unsigned char anodic_test_current_H;
+        unsigned char mas_test_pulses_L;    //!< This is the mas test evaluated pulses low byte
+        unsigned char mas_test_pulses_H;
+        
+    }MAS_TEST_STATUS_t;
     
     #ifdef _PROTOCOL_C       
         SYSTEM_STATUS_t SystemStatusRegister = {.idx=SYSTEM_STATUS_IDX};
-        SYSTEM_AC_INPUT_t SystemACInputRegister = {.idx=SYSTEM_AC_INPUT_IDX};
-        SYSTEM_DC_OUTPUT_t SystemDCOutRegister = {.idx=SYSTEM_DC_OUTPUT_IDX};
+        MAS_TEST_STATUS_t MasTestStatusRegister = {.idx=MAS_TEST_STATUS_IDX};
     #else
         extern SYSTEM_STATUS_t SystemStatusRegister;
-        extern SYSTEM_AC_INPUT_t SystemACInputRegister;
-        extern SYSTEM_DC_OUTPUT_t SystemDCOutRegister;
+        extern MAS_TEST_STATUS_t MasTestStatusRegister;
     #endif  
         
         
@@ -182,7 +172,30 @@ typedef enum{
 * No Data registers are implemented
 *
 */
-        
+typedef enum{
+    SYSTEM_DATA_IDX = 0,
+}DATA_INDEX_t;
+
+    
+typedef struct {
+    const unsigned char idx; //!< Address constant 
+    unsigned char activate_mas_test_current:1;
+    unsigned char spare_d0:7;
+    
+    unsigned char d1;
+    unsigned char d2;
+    unsigned char d3;
+}SYSTEM_DATA_t;
+
+
+ #ifdef _PROTOCOL_C
+    SYSTEM_DATA_t SystemDataRegister = {.idx=SYSTEM_DATA_IDX};
+    
+#else
+    extern SYSTEM_DATA_t SystemDataRegister;
+ 
+#endif  
+    
 //________________________________________ PARAM REGISTER DEFINITION SECTION _     
  
  /**
@@ -194,7 +207,29 @@ typedef enum{
  */
         
 
-   
+typedef enum{
+    MAS_PARAM_IDX = 0,
+}PARAM_INDEX_t;
+
+    
+typedef struct {
+    const unsigned char idx; //!< Address constant 
+    
+    unsigned char calibrated_L; //!< Calibration counted pulses (L byte)
+    unsigned char calibrated_H; //!< Calibration counted pulses (H byte)
+    unsigned char calibrated_ma;//!< Calibration used mA     
+    unsigned char calibrated_10ms_time;//!< Calibration integration time 
+    
+}MAS_PARAM_t;
+
+
+ #ifdef _PROTOCOL_C
+    MAS_PARAM_t MasParamRegister = {.idx=MAS_PARAM_IDX};
+    
+#else
+    extern MAS_PARAM_t MasParamRegister;
+ 
+#endif  
 
         
 //_______________________________________ PROTOCOL COMMANDS DEFINITION SECTION _ 

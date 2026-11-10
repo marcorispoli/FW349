@@ -83,13 +83,15 @@ void TC0_TimerInitialize( void )
     }
 
     /* Configure counter mode & prescaler */
-    TC0_REGS->COUNT16.TC_CTRLA = TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1 | TC_CTRLA_PRESCSYNC_PRESC ;
+    TC0_REGS->COUNT16.TC_CTRLA = TC_CTRLA_MODE_COUNT16 | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_PRESCSYNC_PRESC ;
 
     /* Configure in Match Frequency Mode */
     TC0_REGS->COUNT16.TC_WAVE = (uint8_t)TC_WAVE_WAVEGEN_MPWM;
 
+    /* Configure timer one shot mode */
+    TC0_REGS->COUNT16.TC_CTRLBSET = (uint8_t)TC_CTRLBSET_ONESHOT_Msk;
     /* Configure timer period */
-    TC0_REGS->COUNT16.TC_CC[0U] = 480U;
+    TC0_REGS->COUNT16.TC_CC[0U] = 23437U;
 
     /* Clear all interrupt flags */
     TC0_REGS->COUNT16.TC_INTFLAG = (uint8_t)TC_INTFLAG_Msk;
@@ -108,6 +110,12 @@ void TC0_TimerInitialize( void )
 /* Enable the TC counter */
 void TC0_TimerStart( void )
 {
+    /* In one-shot timer mode, first disable the timer */
+    TC0_REGS->COUNT16.TC_CTRLA &= ~TC_CTRLA_ENABLE_Msk;
+    while((TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE_Msk) == TC_SYNCBUSY_ENABLE_Msk)
+    {
+        /* Wait for Write Synchronization */
+    }
     TC0_REGS->COUNT16.TC_CTRLA |= TC_CTRLA_ENABLE_Msk;
     while((TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE_Msk) == TC_SYNCBUSY_ENABLE_Msk)
     {
@@ -127,7 +135,7 @@ void TC0_TimerStop( void )
 
 uint32_t TC0_TimerFrequencyGet( void )
 {
-    return (uint32_t)(48000000U);
+    return (uint32_t)(46875U);
 }
 
 void TC0_TimerCommandSet(TC_COMMAND command)

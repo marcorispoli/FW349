@@ -107,6 +107,7 @@ int main ( void )
             
             rtcStarter15msCallback();
             rtcExposure15msCallback();
+            rtcMas15msCallback();
             
           
         }
