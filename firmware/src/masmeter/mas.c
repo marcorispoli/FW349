@@ -15,6 +15,7 @@
 #define AUTO_CALIBRATION_ITERATIONS             3
 #define MANUAL_CALIBRATION_ITERATIONS           4
 
+#define EXPOSURE_MONITOR_INTEGRATION_TIME_ms    10
 
 static bool masMonitorActivation(bool stat);
 /**
@@ -60,6 +61,19 @@ void MasInit(void){
     // Reset the auto and manual calibration process
     MAS_Data.auto_calibration.status = false;
     MAS_Data.manual_calibration.status = false;
+    
+    // Exposure MOnitor Data initialization
+    MAS_Data.exposure_monitor.status = false;
+    MAS_Data.exposure_monitor.integration_time_ms = EXPOSURE_MONITOR_INTEGRATION_TIME_ms;    
+    MAS_Data.exposure_monitor.anodic_current.pulses = 0;
+    MAS_Data.exposure_monitor.anodic_current.cumulated_pulses = 0;
+    MAS_Data.exposure_monitor.anodic_current.value = 0;
+    MAS_Data.exposure_monitor.anodic_current.limlow = 0;
+    MAS_Data.exposure_monitor.anodic_current.limhigh = 255;
+    MAS_Data.exposure_monitor.anodic_current.max = 0;
+    MAS_Data.exposure_monitor.anodic_current.min = 0;
+    MAS_Data.exposure_monitor.anodic_current.mean = 0;
+    
     
     // inizializzazione struttura per monitoraggio del masmetro
     MAS_Data.monitor.status = false;
@@ -310,4 +324,42 @@ bool masMonitorActivation(bool stat){
     return stat;
 }
 
+bool masExposureMonitorActivation(bool stat){
+    
+    // Stops the current monitor  
+    masMonitorActivation(false);
+    
+    // Attivazione
+    if(stat){
+        MAS_Data.exposure_monitor.status = true;
 
+        // Init Anodic Monitoring Data
+        MAS_Data.exposure_monitor.anodic_current.pulses = 0;
+        MAS_Data.exposure_monitor.anodic_current.cumulated_pulses = 0;
+        MAS_Data.exposure_monitor.anodic_current.value = 0;
+        MAS_Data.exposure_monitor.anodic_current.max = 0;
+        MAS_Data.exposure_monitor.anodic_current.min = 0;
+        MAS_Data.exposure_monitor.anodic_current.mean = 0;
+        
+        // Attivazione timer e counter
+        TC0_Timer16bitPeriodSet(TC0_ms_to_TICK(MAS_Data.exposure_monitor.integration_time_ms));        
+        TC0_TimerStart();
+        TC0_TimerCommandSet(1);
+        
+        // Attiva il conteggio
+        TC2_Timer16bitCounterSet(0);
+        TC2_TimerStart();
+
+    }else{
+        MAS_Data.exposure_monitor.status = false;
+
+        // Disattiva il conteggio
+        TC2_Timer16bitCounterSet(0);
+        TC2_TimerStop();        
+    }
+
+    // Aggiorna lo STatus register con il valore attuale
+    SystemStatusRegister.anodic_monitor_current_activated = stat;
+    encodeStatusRegister(&SystemStatusRegister);    
+    return stat;
+}

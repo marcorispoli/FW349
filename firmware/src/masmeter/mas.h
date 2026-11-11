@@ -74,6 +74,24 @@ typedef struct masmeter{
         unsigned long pulses; //!< Cumulated pulsig during the integration
         unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
     }monitor;
+    
+    // Diagnostic During Exposure
+    struct exp_monitor_struct{
+        bool status;     //!< Diagnostic process initiated
+        unsigned char integration_time_ms; //!< The integration time for monitor
+        
+        struct anodic{
+            unsigned long cumulated_pulses;
+            unsigned long pulses;
+            unsigned char value;
+            unsigned char limlow;
+            unsigned char limhigh;
+            unsigned char max;
+            unsigned char min;
+            unsigned char mean;
+        }anodic_current;
+        
+    }exposure_monitor;
         
 }_MAS_Struct;
 
@@ -87,7 +105,7 @@ ext void rtcMas15msCallback(void);
 
 ext bool MasAutoCalibration(void);
 ext bool MasManualCalibration(unsigned char anodic_current);
-
+ext bool masExposureMonitorActivation(bool stat);
 
 
 // End Module Definition
