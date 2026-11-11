@@ -85,7 +85,7 @@ void EIC_Initialize (void)
                               EIC_CONFIG_SENSE2_NONE  |
                               EIC_CONFIG_SENSE3_NONE  |
                               EIC_CONFIG_SENSE4_NONE  |
-                              EIC_CONFIG_SENSE5_RISE  |
+                              EIC_CONFIG_SENSE5_RISE | EIC_CONFIG_FILTEN5_Msk |
                               EIC_CONFIG_SENSE6_NONE  |
                               EIC_CONFIG_SENSE7_NONE  ;
 
@@ -101,10 +101,14 @@ void EIC_Initialize (void)
     
 
 
+    /* Debouncer enable */
+    EIC_REGS->EIC_DEBOUNCEN = 0x20U;
 
     /* Event Control Output enable */
     EIC_REGS->EIC_EVCTRL = 0x20U;
 
+    /* Debouncer Setting */
+    EIC_REGS->EIC_DPRESCALER = EIC_DPRESCALER_PRESCALER0(1UL) | EIC_DPRESCALER_PRESCALER1(1UL) | EIC_DPRESCALER_STATES0_Msk ;
 
     /* Enable the EIC */
     EIC_REGS->EIC_CTRLA |= (uint8_t)EIC_CTRLA_ENABLE_Msk;

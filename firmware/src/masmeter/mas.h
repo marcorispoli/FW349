@@ -45,12 +45,10 @@
 
 typedef struct masmeter{
     
-    bool mas_test_status; //!< Status of the test current activation
-    unsigned short  mas_count;       //!< Number of counted pulses in a integration slot
     unsigned short  anodic_current; //!< Estimated anodi current in the integration slot
     
     // Auto CAlibration Process Management
-    struct autocalibration{
+    struct autocalibration_struct{
         bool status;                    //!< Auto Calibration Process Running
         bool completed;                 //!< Process completion flag
         unsigned char anodic_current_test;//!< Anodic current used for calibration
@@ -59,7 +57,24 @@ typedef struct masmeter{
         unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
     }auto_calibration;
     
-    unsigned char cycles;
+    // Manual CAlibration Process Management
+    struct manualcalibration_struct{
+        bool status;                    //!< Auto Calibration Process Running
+        bool completed;                 //!< Process completion flag
+        unsigned char anodic_current_test;//!< Anodic current used for calibration
+        unsigned long cumulated_pulses; //!< Cumulated pulsig during the integration
+        unsigned char iterations;       //!< Number of iteration slots
+        unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
+    }manual_calibration;
+    
+    // Manual CAlibration Process Management
+    struct monitor_struct{
+        bool status;                    //!< Auto Calibration Process Running        
+        unsigned char anodic_current_test;//!< Anodic current used for calibration
+        unsigned long pulses; //!< Cumulated pulsig during the integration
+        unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
+    }monitor;
+        
 }_MAS_Struct;
 
 ext _MAS_Struct MAS_Data;
@@ -71,6 +86,7 @@ ext void MasInit (void);
 ext void rtcMas15msCallback(void);
 
 ext bool MasAutoCalibration(void);
+ext bool MasManualCalibration(unsigned char anodic_current);
 
 
 

@@ -88,10 +88,8 @@ void TC0_TimerInitialize( void )
     /* Configure in Match Frequency Mode */
     TC0_REGS->COUNT16.TC_WAVE = (uint8_t)TC_WAVE_WAVEGEN_MPWM;
 
-    /* Configure timer one shot mode */
-    TC0_REGS->COUNT16.TC_CTRLBSET = (uint8_t)TC_CTRLBSET_ONESHOT_Msk;
     /* Configure timer period */
-    TC0_REGS->COUNT16.TC_CC[0U] = 23437U;
+    TC0_REGS->COUNT16.TC_CC[0U] = 46875U;
 
     /* Clear all interrupt flags */
     TC0_REGS->COUNT16.TC_INTFLAG = (uint8_t)TC_INTFLAG_Msk;
@@ -110,12 +108,6 @@ void TC0_TimerInitialize( void )
 /* Enable the TC counter */
 void TC0_TimerStart( void )
 {
-    /* In one-shot timer mode, first disable the timer */
-    TC0_REGS->COUNT16.TC_CTRLA &= ~TC_CTRLA_ENABLE_Msk;
-    while((TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE_Msk) == TC_SYNCBUSY_ENABLE_Msk)
-    {
-        /* Wait for Write Synchronization */
-    }
     TC0_REGS->COUNT16.TC_CTRLA |= TC_CTRLA_ENABLE_Msk;
     while((TC0_REGS->COUNT16.TC_SYNCBUSY & TC_SYNCBUSY_ENABLE_Msk) == TC_SYNCBUSY_ENABLE_Msk)
     {

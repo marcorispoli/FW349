@@ -60,16 +60,15 @@ void ApplicationProtocolCommandHandler(uint8_t cmd, uint8_t d0,uint8_t d1,uint8_
         
         case CMD_MAS_AUTO_CALIBRATION:
             
-            // Conflitto di funzioni abilitate. L'auto calibrazione è attiva solo se 
-            // la corrente di test è attiva.
-            if(SystemDataRegister.activate_mas_test_current == false){ 
-                MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_ENABLED);
-                return;
-            }
-            
             if(MasAutoCalibration()) MET_Can_Protocol_returnCommandExecuted(0,0);
             else MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_ENABLED);
             break;
+            
+        case CMD_MAS_MANUAL_CALIBRATION:
+            
+            if(MasManualCalibration(d0)) MET_Can_Protocol_returnCommandExecuted(0,0);
+            else MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_ENABLED);
+            break;  
             
         default:
             MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_AVAILABLE);
