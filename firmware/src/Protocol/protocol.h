@@ -63,7 +63,7 @@ typedef struct {
 /// Protocol Definition Data
 typedef enum{
     MET_CAN_APP_DEVICE_ID    =  0x19,      //!< Application DEVICE CAN Id address
-    MET_CAN_STATUS_REGISTERS =  2,        //!< Defines the total number of implemented STATUS registers 
+    MET_CAN_STATUS_REGISTERS =  3,        //!< Defines the total number of implemented STATUS registers 
     MET_CAN_DATA_REGISTERS   =  1,        //!< Defines the total number of implemented Application DATA registers 
     MET_CAN_PARAM_REGISTERS  =  1       //!< Defines the total number of implemented PARAMETER registers 
 }PROTOCOL_DEFINITION_DATA_t;
@@ -131,6 +131,7 @@ ext void decodeDataRegister(void* reg);
 typedef enum{
     SYSTEM_STATUS_IDX = 0, //!< This is the System general data status register 
     MAS_MONITOR_STATUS_IDX = 1, //!< This is the mAs test related status register
+    MAS_INTEGRATOR_STATUS_IDX = 2, //!< This register provides the last integration result
 }STATUS_INDEX_t;
 
     typedef struct {
@@ -156,12 +157,26 @@ typedef enum{
         
     }MAS_MONITOR_STATUS_t;
     
+    typedef struct {
+        const unsigned char idx; //!< Address constant 
+
+        unsigned char dmas_integrated_L; //!< This is the total integrated mAs
+        unsigned char dmas_integrated_H;
+        unsigned char mas_time_L;    //!< This is the time measured for the integration
+        unsigned char mas_time_H;
+        
+    }MAS_INTEGRATOR_STATUS_t;
+    
+    
     #ifdef _PROTOCOL_C       
         SYSTEM_STATUS_t SystemStatusRegister = {.idx=SYSTEM_STATUS_IDX};
         MAS_MONITOR_STATUS_t MasMonitorStatusRegister = {.idx=MAS_MONITOR_STATUS_IDX};
+        MAS_INTEGRATOR_STATUS_t MasIntegratorStatusRegister = {.idx=MAS_INTEGRATOR_STATUS_IDX};
+        
     #else
         extern SYSTEM_STATUS_t SystemStatusRegister;
         extern MAS_MONITOR_STATUS_t MasMonitorStatusRegister;
+        extern MAS_INTEGRATOR_STATUS_t MasIntegratorStatusRegister;
     #endif  
         
         
@@ -251,7 +266,7 @@ typedef enum{
    CMD_ABORT = 0,               //!< Abort Command
    CMD_MAS_AUTO_CALIBRATION,    //!< Auto Calibration Activation Command
    CMD_MAS_MANUAL_CALIBRATION,  //!< Manual Calibration Activation Command
-   
+   CMD_MAS_START_INTEGRATOR,    //!< Execute an Integration session
 }PROTOCOL_COMMANDS_t;
 
 /// \ingroup CANPROT

@@ -9,7 +9,7 @@ static int xrayreq_debounce;
 
 void ExposureInit(void){
     //TC1_TimerCallbackRegister( MasCallback, 0 );
-    TC1_TimerStop();
+    TC4_TimerStop();
     
     // Xray Button Request INitialization
     EXPOSURE_Data.gpio.xray_request_button = (!uC_SYNC_nREQ_Get());
@@ -40,12 +40,12 @@ bool ExposureStartManual2D(void){
     EXPOSURE_Data.status.sequence = 0;
     EXPOSURE_Data.status.status_flag = EXPSTAT_INIZIALIZATION;
     
-    TC1_TimerCallbackRegister( Exposure2DManualSequence, 0 );
-    TC1_TimerStop();
+    TC4_TimerCallbackRegister( Exposure2DManualSequence, 0 );
+    TC4_TimerStop();
     return true;
 }
 
 void ExposureCompleted(_EXPOSURE_ERROR code){    
-    TC1_TimerStop();
+    TC4_TimerStop();
     return;
 }

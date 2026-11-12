@@ -6,7 +6,8 @@
 #include "../Shared/CAN/MET_can_protocol.h"
 
 #define TC0_us_TICK                 21.333
-#define TC0_ms_to_TICK(x)           (x*(1000/21.333))
+#define TC0_ms_to_TICK(x)           ((unsigned long) (((float) x) *(1000.0/TC0_us_TICK)))
+#define TC0_TICK_to_ms(x)           ((unsigned short) (TC0_us_TICK * (float) x / 1000) )
 
 // Monitor and Calibration data
 #define INTERNAL_NOMINAL_TEST_mA                205
@@ -18,10 +19,30 @@
 #define EXPOSURE_MONITOR_INTEGRATION_TIME_ms    10
 
 static void masVrefActivation(bool stat);
-static void masIntegrationStart(unsigned char period_10ms);
+static void masIntegrationStart(unsigned short period_ms);
 static void masIntegrationStop(void);
 static void MasInternalCurrentMonitor(bool stat, bool internal_vref);
 
+static void MasIntegratorDefaultCallback_Overflow(void){
+    LED_FLT_Clear();
+    
+    // Aggiorna i registri del Can Bus
+    MasIntegratorStatusRegister.dmas_integrated_H = ( ((unsigned short) (MAS_Data.integrator.integrated_mAs * 10 )) >> 8);
+    MasIntegratorStatusRegister.dmas_integrated_L = ( ((unsigned short) (MAS_Data.integrator.integrated_mAs * 10)) & 0xFF);
+    MasIntegratorStatusRegister.mas_time_H = (MAS_Data.integrator.integrated_time_ms >> 8);
+    MasIntegratorStatusRegister.mas_time_L = (MAS_Data.integrator.integrated_time_ms & 0xFF);
+    encodeStatusRegister(&MasIntegratorStatusRegister);    
+    
+    return;
+}
+
+static void TC2_Overflow(TC_TIMER_STATUS status, uintptr_t context){
+    // Fine Integrazione con successo
+     if(MAS_Data.integrator.status){    
+        StopIntegrator(false);
+        return;
+    }
+}
 /**
  * This is a One Sho Timer to calculate the current mAs pulses in a timed slot
  * 
@@ -30,10 +51,21 @@ static void MasInternalCurrentMonitor(bool stat, bool internal_vref);
  */
 static void TCO_MasCallback(TC_TIMER_STATUS status, uintptr_t context){
     
+    ///////////////////  SEZIONE DEDICATA ALL'INTEGRATORE //////////////////////
+    // Timeout dell'integratore 
+    // Quando l'integratore viene attivato (per integrare i mAs) questo timer 
+    // è utilizzato per segnalare il timeout
+    if(MAS_Data.integrator.status){
+        StopIntegrator(true);
+        return;
+    }
+    
+    ///////////////////  SEZIONE DEDICATA AL MONITOR E CALIBRAZIONE //////////////////////
+    
     // La funzione di monitoraggio è sempre attiva e contiene il valore accumulato in 
     // un singolo time slot di integrazione.    
-    MAS_Data.monitor.pulses = TC2_Timer16bitCounterGet();
-    TC2_Timer16bitCounterSet(0);
+    MAS_Data.monitor.pulses = TC2_Timer32bitCounterGet();
+    TC2_Timer32bitCounterSet(0);
         
     // Se c'è in corso una calibrazione, aggiunge i conteggi e gestisce il
     // numero di iterazioni
@@ -54,7 +86,13 @@ void MasInit(void){
     REGISTER_STRUCT_t* canreg;
     
     TC0_TimerCallbackRegister( TCO_MasCallback, 0 );
+
+    TC2_TimerCallbackRegister( TC2_Overflow, 0 );
+    TC2_Timer32bitPeriodSet(0xFFFFFFFF); 
+    TC2_TimerStart();
+    TC2_TimerCommandSet(1);
     
+            
     // Reset the auto and manual calibration process
     MAS_Data.calibration.status = false;
     SystemStatusRegister.mas_auto_calibration_activated = 0;
@@ -75,7 +113,7 @@ void MasInit(void){
         
     // inizializzazione struttura per monitoraggio del masmetro    
     MAS_Data.monitor.pulses = 0;
-    MAS_Data.monitor.integration_time_10ms = MasParamRegister.calibrated_10ms_time;
+    MAS_Data.monitor.integration_time_ms = MasParamRegister.calibrated_10ms_time * 10;
 
     // Ferma l'integrazione
     TC0_TimerStop();        
@@ -90,6 +128,21 @@ void MasInit(void){
 
     // Spegne Monitor Interno 
     MAS_Data.monitor.status = false;
+        
+    // Inizializzazione dell'integratore 
+    MAS_Data.integrator.status = false;
+    MAS_Data.integrator.completed = false;
+    MAS_Data.integrator.error_timeout = false;
+    MAS_Data.integrator.request_mAs = 0;
+    MAS_Data.integrator.integrated_mAs = 0;
+    MAS_Data.integrator.timeout_ms = 0;
+    MAS_Data.integrator.Callback = MasIntegratorDefaultCallback_Overflow;
+    
+    MasIntegratorStatusRegister.dmas_integrated_H = 0;
+    MasIntegratorStatusRegister.dmas_integrated_L = 0;
+    MasIntegratorStatusRegister.mas_time_H = 0;
+    MasIntegratorStatusRegister.mas_time_L = 0;
+    encodeStatusRegister(&MasIntegratorStatusRegister);    
     
     // Aggiorna lo status register
     encodeStatusRegister(&SystemStatusRegister);    
@@ -130,7 +183,7 @@ unsigned short getCalibratedAnodicCurrent(unsigned short pulses, unsigned short 
 }
 
 void ComputeCalibrationResult(void){
-    MasParamRegister.calibrated_10ms_time = MAS_Data.calibration.integration_time_10ms;
+    MasParamRegister.calibrated_10ms_time = MAS_Data.calibration.integration_time_ms / 10;
     unsigned short pulses = MAS_Data.calibration.cumulated_pulses/(MAS_Data.calibration.num_iterations);
     MasParamRegister.calibrated_H = pulses >>8;
     MasParamRegister.calibrated_L = pulses & 0x00FF;
@@ -147,6 +200,9 @@ void ComputeCalibrationResult(void){
  */
 void rtcMas15msCallback(void){
    
+    // Nessuna attività in Idle deve essere condotta durante l'integrazione 
+    if(MAS_Data.integrator.status) return;
+    
     // Update the SystemDataRegister
     decodeDataRegister(&SystemDataRegister);
     
@@ -165,7 +221,7 @@ void rtcMas15msCallback(void){
             MasMonitorStatusRegister.mas_counts_H = ((MAS_Data.monitor.pulses >> 8) & 0x00FF);
             MasMonitorStatusRegister.mas_counts_L = MAS_Data.monitor.pulses & 0x00FF;  
 
-            MAS_Data.monitor.anodic_current = getCalibratedAnodicCurrent(MAS_Data.monitor.pulses, MAS_Data.monitor.integration_time_10ms) ;
+            MAS_Data.monitor.anodic_current = getCalibratedAnodicCurrent(MAS_Data.monitor.pulses, MAS_Data.monitor.integration_time_ms / 10) ;
             MasMonitorStatusRegister.mas_anodic_current_L = MAS_Data.monitor.anodic_current;
             MasMonitorStatusRegister.mas_anodic_current_H = (MAS_Data.monitor.anodic_current>>8);
             encodeStatusRegister(&MasMonitorStatusRegister);
@@ -196,7 +252,7 @@ bool MasAutoCalibration(void){
     MAS_Data.calibration.cumulated_pulses = 0;
     MAS_Data.calibration.iterations = 0;
     MAS_Data.calibration.num_iterations = AUTO_CALIBRATION_ITERATIONS;    
-    MAS_Data.calibration.integration_time_10ms = CALIB_INTEGRATION_TIME_ms/10;
+    MAS_Data.calibration.integration_time_ms = CALIB_INTEGRATION_TIME_ms;
     MAS_Data.calibration.calibration_mode = MAS_AUTO_CALIBRATION;
     
     // Uses the default calibration parameters to execute the calibration
@@ -209,7 +265,7 @@ bool MasAutoCalibration(void){
     masVrefActivation(true);
     
     // Attiva l'integrazione
-    masIntegrationStart( MAS_Data.calibration.integration_time_10ms );   
+    masIntegrationStart( MAS_Data.calibration.integration_time_ms );   
     
     encodeStatusRegister(&SystemStatusRegister);
     return true;
@@ -226,7 +282,7 @@ bool MasManualCalibration(unsigned char anodic_current){
     MAS_Data.calibration.cumulated_pulses = 0;
     MAS_Data.calibration.iterations = 0;
     MAS_Data.calibration.num_iterations = MANUAL_CALIBRATION_ITERATIONS;    
-    MAS_Data.calibration.integration_time_10ms = CALIB_INTEGRATION_TIME_ms/10;
+    MAS_Data.calibration.integration_time_ms = CALIB_INTEGRATION_TIME_ms;
     MAS_Data.calibration.calibration_mode = MAS_MANUAL_CALIBRATION;
     
     // Uses the default calibration parameters to execute the calibration
@@ -235,7 +291,7 @@ bool MasManualCalibration(unsigned char anodic_current){
     SystemStatusRegister.mas_auto_calibration_activated = 0;
     SystemStatusRegister.mas_manual_calibration_activated = 1;
     
-    masIntegrationStart( MAS_Data.calibration.integration_time_10ms );   
+    masIntegrationStart( MAS_Data.calibration.integration_time_ms );   
     
     encodeStatusRegister(&SystemStatusRegister);
     return true;
@@ -250,7 +306,7 @@ void MasInternalCurrentMonitor(bool stat, bool internal_vref){
     if(stat){    
         // Switch off the internal vref
         masVrefActivation(internal_vref);
-        masIntegrationStart( MAS_Data.monitor.integration_time_10ms );   
+        masIntegrationStart( MAS_Data.monitor.integration_time_ms );   
 
     }else{       
         // Switch off the internal vref
@@ -265,17 +321,20 @@ void MasInternalCurrentMonitor(bool stat, bool internal_vref){
 
 
 
-void masIntegrationStart(unsigned char period_10ms){
+void masIntegrationStart(unsigned short period_ms){
     if(MAS_Data.monitor.integration_status) return;
     
     // Attivazione timer e counter
-    TC0_Timer16bitPeriodSet(TC0_ms_to_TICK(period_10ms * 10));        
+    TC0_Timer32bitPeriodSet(TC0_ms_to_TICK(period_ms));        
     TC0_TimerStart();
     TC0_TimerCommandSet(1);
 
     // Attiva il conteggio
-    TC2_Timer16bitCounterSet(0);
+    TC2_Timer32bitPeriodSet(0xFFFFFFFF); 
+    TC2_Timer32bitCounterSet(0);
     TC2_TimerStart();
+    TC2_TimerCommandSet(1);
+    
     MAS_Data.monitor.integration_status = true;
     return;
 }
@@ -309,4 +368,95 @@ void masVrefActivation(bool stat){
     SystemStatusRegister.mas_vref_activated = stat;
     encodeStatusRegister(&SystemStatusRegister);    
     return ;
+}
+
+/**
+ * 
+ *  // MASc = Tc(ms) * Ic(mA)
+    // mAs = MASC*P/Pc
+    // P = mAs * Pc / MASc 
+ * 
+ * @param mAs
+ * @param timeout_ms
+ * @param callback
+ * @return 
+ */
+bool StartIntegrator(unsigned short dmAs, unsigned short timeout_ms, MAS_COMPLETE_CALLBACK callback){    
+    LED_FLT_Set();
+    
+    // Blocca tutte le attività in Idle
+    masIntegrationStop();
+    masVrefActivation(false);
+    MasInternalCurrentMonitor(false,false);
+
+    // Aggiorna il contenuto del registro parametri di configurazione prima di usarlo
+    encodeParamRegister(&MasParamRegister);
+    
+    MAS_Data.integrator.request_mAs = (float) dmAs / 10;
+    MAS_Data.integrator.integrated_mAs = 0;
+    
+    // Calcola gli impulsi necessari per il conteggio dei mAs richiesti
+    float masc = (float) MasParamRegister.calibrated_10ms_time * (float) MasParamRegister.calibrated_ma /100;
+    float pulsec = (float) (MasParamRegister.calibrated_H * 256 + MasParamRegister.calibrated_L);
+   
+    MAS_Data.integrator.status = 1;
+    MAS_Data.integrator.completed = 0;
+    MAS_Data.integrator.error_timeout = 0;
+    MAS_Data.integrator.timeout_ms = timeout_ms;
+    MAS_Data.integrator.Callback = callback;
+    if(MAS_Data.integrator.Callback == 0) MAS_Data.integrator.Callback = MasIntegratorDefaultCallback_Overflow;
+    
+    
+    // Inserisce il numero di impulsi nel periodo di overflow del contatore
+    TC2_Timer32bitPeriodSet((unsigned long) (MAS_Data.integrator.request_mAs * pulsec / masc)); 
+    TC2_Timer32bitCounterSet(0);
+    TC2_TimerStart();
+    TC2_TimerCommandSet(1);
+    
+
+    // Attiva il Timeout
+    TC0_Timer32bitPeriodSet(TC0_ms_to_TICK(timeout_ms));         
+    TC0_TimerStart();
+    TC0_TimerCommandSet(1);
+    
+    return true;
+}
+
+ext void StopIntegrator(bool timeout){
+    if(!MAS_Data.integrator.status) return;
+    
+    // Acquisisce gli impulsi rimanenti 
+    unsigned long integrator_pulses = TC2_Timer32bitCounterGet();
+    unsigned long imtegrator_time = TC0_Timer32bitCounterGet();
+    TC2_TimerStop();
+    TC0_TimerStop();
+    
+    // Calcola gli impulsi necessari per il conteggio dei mAs richiesti
+    float masc = (float) MasParamRegister.calibrated_10ms_time * (float) MasParamRegister.calibrated_ma /100;
+    float pulsec = (float) (MasParamRegister.calibrated_H * 256 + MasParamRegister.calibrated_L);
+    
+    MAS_Data.integrator.error_timeout = timeout;    
+    if(timeout){
+        MAS_Data.integrator.integrated_mAs = masc * (float) integrator_pulses / pulsec;
+        MAS_Data.integrator.integrated_time_ms = MAS_Data.integrator.timeout_ms;
+    }else{
+        MAS_Data.integrator.integrated_time_ms =  TC0_TICK_to_ms(imtegrator_time);
+        MAS_Data.integrator.integrated_mAs = MAS_Data.integrator.request_mAs;
+    }
+    
+    // Chiama la callback se è assegnata
+    MAS_Data.integrator.status = 0;
+    MAS_Data.integrator.completed = 1;    
+    if(MAS_Data.integrator.Callback) MAS_Data.integrator.Callback(); 
+    
+    
+    // Reset dei parametri del masmetro    
+    MAS_Data.integrator.status = false;
+    MAS_Data.integrator.completed = false;
+    MAS_Data.integrator.error_timeout = false;
+    MAS_Data.integrator.request_mAs = 0;
+    MAS_Data.integrator.integrated_mAs = 0;
+    MAS_Data.integrator.timeout_ms = 0;
+    MAS_Data.integrator.Callback = MasIntegratorDefaultCallback_Overflow;    
+    return;
 }
