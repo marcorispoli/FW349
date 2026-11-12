@@ -135,10 +135,11 @@ typedef enum{
 
     typedef struct {
         const unsigned char idx; //!< Address constant 
-        unsigned char anodic_monitor_current_activated:1; //!< This is the current test activation status flag
-        unsigned char auto_calibration_activated:1; //!< This is the auto calibration activation status flag
-        unsigned char manual_calibration_activated:1; //!< This is the manual calibration activation status flag
-        unsigned char do_spare:5;
+        unsigned char mas_monitor_activated:1;      //!< This is the monitor activity feedback
+        unsigned char mas_vref_activated:1;         //!< This is the internal vref activation mode
+        unsigned char mas_auto_calibration_activated:1; //!< This is the auto calibration activation status flag
+        unsigned char mas_manual_calibration_activated:1; //!< This is the manual calibration activation status flag
+        unsigned char do_spare:4;
         
         unsigned char d1; 
         unsigned char d2; 
@@ -148,10 +149,10 @@ typedef enum{
     typedef struct {
         const unsigned char idx; //!< Address constant 
 
-        unsigned char anodic_current_L; //!< This is the anodic test evaluated value low byte
-        unsigned char anodic_current_H;
-        unsigned char mas_pulses_L;    //!< This is the mas test evaluated pulses low byte
-        unsigned char mas_pulses_H;
+        unsigned char mas_anodic_current_L; //!< This is the anodic test evaluated value low byte
+        unsigned char mas_anodic_current_H;
+        unsigned char mas_counts_L;    //!< This is the mas test evaluated pulses low byte
+        unsigned char mas_counts_H;
         
     }MAS_MONITOR_STATUS_t;
     
@@ -181,8 +182,9 @@ typedef enum{
     
 typedef struct {
     const unsigned char idx; //!< Address constant 
-    unsigned char activate_mas_monitor_current:1;
-    unsigned char spare_d0:7;
+    unsigned char mas_internal_monitor:1;
+    unsigned char mas_monitor_with_vref:1;
+    unsigned char spare_d0:6;
     
     unsigned char d1;
     unsigned char d2;

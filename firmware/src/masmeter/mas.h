@@ -41,57 +41,35 @@
  * 
  */
 
-
+typedef enum{
+    MAS_AUTO_CALIBRATION = 0,
+    MAS_MANUAL_CALIBRATION,
+}_MAS_CALIB_MODE;
 
 typedef struct masmeter{
     
-    unsigned short  anodic_current; //!< Estimated anodi current in the integration slot
+    // Manual Calibration Process Management
+    struct calibration_struct{
+        _MAS_CALIB_MODE calibration_mode;   //!< Defines the calibrtion mode
+        bool status;                        //!< Calibration Process Running
+        bool completed;                     //!< Calibration Process Terminated
+        unsigned char anodic_current_test;  //!< Anodic current used for calibration
+        unsigned long cumulated_pulses;     //!< Cumulated pulsig during the integration
+        unsigned char iterations;           //!< Number of current executing iteration
+        unsigned char num_iterations;       //!< Number of total iteration to complete the calibration
+        unsigned char integration_time_10ms; //!< The integration time in 10ms units
+    }calibration;
     
-    // Auto CAlibration Process Management
-    struct autocalibration_struct{
-        bool status;                    //!< Auto Calibration Process Running
-        bool completed;                 //!< Process completion flag
-        unsigned char anodic_current_test;//!< Anodic current used for calibration
-        unsigned long cumulated_pulses; //!< Cumulated pulsig during the integration
-        unsigned char iterations;       //!< Number of iteration slots
-        unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
-    }auto_calibration;
-    
-    // Manual CAlibration Process Management
-    struct manualcalibration_struct{
-        bool status;                    //!< Auto Calibration Process Running
-        bool completed;                 //!< Process completion flag
-        unsigned char anodic_current_test;//!< Anodic current used for calibration
-        unsigned long cumulated_pulses; //!< Cumulated pulsig during the integration
-        unsigned char iterations;       //!< Number of iteration slots
-        unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
-    }manual_calibration;
-    
-    // Manual CAlibration Process Management
+    // Manual Calibration Process Management
     struct monitor_struct{
-        bool status;                    //!< Auto Calibration Process Running        
-        unsigned char anodic_current_test;//!< Anodic current used for calibration
+        bool status;            //!< The internal monitoring is activated
         unsigned long pulses; //!< Cumulated pulsig during the integration
-        unsigned char iteration_time_slot_10ms; //!< The integration time for single slot
+        unsigned short  anodic_current; //!< Estimated anodi current in the integration slot
+        unsigned char integration_time_10ms; //!< The integration time in 10ms units
+        bool vref_stat;         //!< The internal voltage reference activation status (2.04V)
+        bool integration_status;//!< The integration is running
     }monitor;
     
-    // Diagnostic During Exposure
-    struct exp_monitor_struct{
-        bool status;     //!< Diagnostic process initiated
-        unsigned char integration_time_ms; //!< The integration time for monitor
-        
-        struct anodic{
-            unsigned long cumulated_pulses;
-            unsigned long pulses;
-            unsigned char value;
-            unsigned char limlow;
-            unsigned char limhigh;
-            unsigned char max;
-            unsigned char min;
-            unsigned char mean;
-        }anodic_current;
-        
-    }exposure_monitor;
         
 }_MAS_Struct;
 
@@ -105,7 +83,6 @@ ext void rtcMas15msCallback(void);
 
 ext bool MasAutoCalibration(void);
 ext bool MasManualCalibration(unsigned char anodic_current);
-ext bool masExposureMonitorActivation(bool stat);
 
 
 // End Module Definition
