@@ -70,6 +70,12 @@ void ApplicationProtocolCommandHandler(uint8_t cmd, uint8_t d0,uint8_t d1,uint8_
             else MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_ENABLED);
             break;  
             
+        case CMD_MAS_START_INTEGRATOR:
+           
+            if(StartIntegrator(((unsigned short) d0 + 256* (unsigned short) d1), ((unsigned short) d2 + 256 * (unsigned short) d3), 0)) MET_Can_Protocol_returnCommandExecuted(0,0);
+            else MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_ENABLED);
+            break;  
+            
         default:
             MET_Can_Protocol_returnCommandError(MET_CAN_COMMAND_NOT_AVAILABLE);
     }

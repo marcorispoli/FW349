@@ -63,7 +63,7 @@ typedef struct {
 /// Protocol Definition Data
 typedef enum{
     MET_CAN_APP_DEVICE_ID    =  0x19,      //!< Application DEVICE CAN Id address
-    MET_CAN_STATUS_REGISTERS =  2,        //!< Defines the total number of implemented STATUS registers 
+    MET_CAN_STATUS_REGISTERS =  3,        //!< Defines the total number of implemented STATUS registers 
     MET_CAN_DATA_REGISTERS   =  1,        //!< Defines the total number of implemented Application DATA registers 
     MET_CAN_PARAM_REGISTERS  =  1       //!< Defines the total number of implemented PARAMETER registers 
 }PROTOCOL_DEFINITION_DATA_t;
@@ -131,14 +131,16 @@ ext void decodeDataRegister(void* reg);
 typedef enum{
     SYSTEM_STATUS_IDX = 0, //!< This is the System general data status register 
     MAS_MONITOR_STATUS_IDX = 1, //!< This is the mAs test related status register
+    MAS_INTEGRATOR_STATUS_IDX = 2, //!< This register provides the last integration result
 }STATUS_INDEX_t;
 
     typedef struct {
         const unsigned char idx; //!< Address constant 
-        unsigned char anodic_monitor_current_activated:1; //!< This is the current test activation status flag
-        unsigned char auto_calibration_activated:1; //!< This is the auto calibration activation status flag
-        unsigned char manual_calibration_activated:1; //!< This is the manual calibration activation status flag
-        unsigned char do_spare:5;
+        unsigned char mas_monitor_activated:1;      //!< This is the monitor activity feedback
+        unsigned char mas_vref_activated:1;         //!< This is the internal vref activation mode
+        unsigned char mas_auto_calibration_activated:1; //!< This is the auto calibration activation status flag
+        unsigned char mas_manual_calibration_activated:1; //!< This is the manual calibration activation status flag
+        unsigned char do_spare:4;
         
         unsigned char d1; 
         unsigned char d2; 
@@ -148,19 +150,33 @@ typedef enum{
     typedef struct {
         const unsigned char idx; //!< Address constant 
 
-        unsigned char anodic_current_L; //!< This is the anodic test evaluated value low byte
-        unsigned char anodic_current_H;
-        unsigned char mas_pulses_L;    //!< This is the mas test evaluated pulses low byte
-        unsigned char mas_pulses_H;
+        unsigned char mas_anodic_current_L; //!< This is the anodic test evaluated value low byte
+        unsigned char mas_anodic_current_H;
+        unsigned char mas_counts_L;    //!< This is the mas test evaluated pulses low byte
+        unsigned char mas_counts_H;
         
     }MAS_MONITOR_STATUS_t;
+    
+    typedef struct {
+        const unsigned char idx; //!< Address constant 
+
+        unsigned char dmas_integrated_L; //!< This is the total integrated mAs
+        unsigned char dmas_integrated_H;
+        unsigned char mas_time_L;    //!< This is the time measured for the integration
+        unsigned char mas_time_H;
+        
+    }MAS_INTEGRATOR_STATUS_t;
+    
     
     #ifdef _PROTOCOL_C       
         SYSTEM_STATUS_t SystemStatusRegister = {.idx=SYSTEM_STATUS_IDX};
         MAS_MONITOR_STATUS_t MasMonitorStatusRegister = {.idx=MAS_MONITOR_STATUS_IDX};
+        MAS_INTEGRATOR_STATUS_t MasIntegratorStatusRegister = {.idx=MAS_INTEGRATOR_STATUS_IDX};
+        
     #else
         extern SYSTEM_STATUS_t SystemStatusRegister;
         extern MAS_MONITOR_STATUS_t MasMonitorStatusRegister;
+        extern MAS_INTEGRATOR_STATUS_t MasIntegratorStatusRegister;
     #endif  
         
         
@@ -181,8 +197,9 @@ typedef enum{
     
 typedef struct {
     const unsigned char idx; //!< Address constant 
-    unsigned char activate_mas_monitor_current:1;
-    unsigned char spare_d0:7;
+    unsigned char mas_internal_monitor:1;
+    unsigned char mas_monitor_with_vref:1;
+    unsigned char spare_d0:6;
     
     unsigned char d1;
     unsigned char d2;
@@ -249,7 +266,7 @@ typedef enum{
    CMD_ABORT = 0,               //!< Abort Command
    CMD_MAS_AUTO_CALIBRATION,    //!< Auto Calibration Activation Command
    CMD_MAS_MANUAL_CALIBRATION,  //!< Manual Calibration Activation Command
-   
+   CMD_MAS_START_INTEGRATOR,    //!< Execute an Integration session
 }PROTOCOL_COMMANDS_t;
 
 /// \ingroup CANPROT

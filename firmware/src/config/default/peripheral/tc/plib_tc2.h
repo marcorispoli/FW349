@@ -96,17 +96,18 @@ void TC2_TimerStop( void );
 uint32_t TC2_TimerFrequencyGet( void );
 
 
-void TC2_Timer16bitPeriodSet( uint16_t period );
+void TC2_Timer32bitPeriodSet( uint32_t period );
 
-uint16_t TC2_Timer16bitPeriodGet( void );
+uint32_t TC2_Timer32bitPeriodGet( void );
 
-uint16_t TC2_Timer16bitCounterGet( void );
+uint32_t TC2_Timer32bitCounterGet( void );
 
-void TC2_Timer16bitCounterSet( uint16_t count );
+void TC2_Timer32bitCounterSet( uint32_t count );
 
 
 
-bool TC2_TimerPeriodHasExpired( void );
+void TC2_TimerCallbackRegister( TC_TIMER_CALLBACK callback, uintptr_t context );
+
 
 void TC2_TimerCommandSet(TC_COMMAND command);
 

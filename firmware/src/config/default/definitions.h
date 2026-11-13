@@ -58,10 +58,10 @@
 #include "peripheral/sercom/spi_master/plib_sercom4_spi_master.h"
 #include "peripheral/can/plib_can0.h"
 #include "peripheral/eic/plib_eic.h"
-#include "peripheral/tc/plib_tc1.h"
-#include "peripheral/tc/plib_tc0.h"
 #include "peripheral/rtc/plib_rtc.h"
+#include "peripheral/tc/plib_tc0.h"
 #include "peripheral/tc/plib_tc2.h"
+#include "peripheral/tc/plib_tc4.h"
 #include "peripheral/adc/plib_adc0.h"
 #include "peripheral/adc/plib_adc1.h"
 

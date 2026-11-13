@@ -201,6 +201,13 @@ void CLOCK_Initialize (void)
     {
         /* Wait for synchronization */
     }
+    /* Selection of the Generator and write Lock for TC4 TC5 */
+    GCLK_REGS->GCLK_PCHCTRL[30] = GCLK_PCHCTRL_GEN(0x1)  | GCLK_PCHCTRL_CHEN_Msk;
+
+    while ((GCLK_REGS->GCLK_PCHCTRL[30] & GCLK_PCHCTRL_CHEN_Msk) != GCLK_PCHCTRL_CHEN_Msk)
+    {
+        /* Wait for synchronization */
+    }
     /* Selection of the Generator and write Lock for SERCOM4_CORE */
     GCLK_REGS->GCLK_PCHCTRL[34] = GCLK_PCHCTRL_GEN(0x1)  | GCLK_PCHCTRL_CHEN_Msk;
 
@@ -230,7 +237,10 @@ void CLOCK_Initialize (void)
     MCLK_REGS->MCLK_APBAMASK = 0xc7ff;
 
     /* Configure the APBB Bridge Clocks */
-    MCLK_REGS->MCLK_APBBMASK = 0x1a0d6;
+    MCLK_REGS->MCLK_APBBMASK = 0x1e0d6;
+
+    /* Configure the APBC Bridge Clocks */
+    MCLK_REGS->MCLK_APBCMASK = 0x2020;
 
     /* Configure the APBD Bridge Clocks */
     MCLK_REGS->MCLK_APBDMASK = 0x181;

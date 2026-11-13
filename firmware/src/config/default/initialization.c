@@ -139,13 +139,15 @@ void SYS_Initialize ( void* data )
 
     EIC_Initialize();
 
-    TC1_TimerInitialize();
-
-    TC0_TimerInitialize();
 
     RTC_Initialize();
 
+    TC0_TimerInitialize();
+
+
     TC2_TimerInitialize();
+
+    TC4_TimerInitialize();
 
     ADC0_Initialize();
     ADC1_Initialize();
