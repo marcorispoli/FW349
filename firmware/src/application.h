@@ -1,18 +1,102 @@
 /*!
- * \defgroup  applicationModule Application Modules section
+ * \defgroup  specificationGroup Firmware Requirements Specification
+ * 
+ * # Overview
+ * 
+ * This firmware provides functions to control the activity of the PCB-26-349 board.
+ * 
+ * The Board is in charge of the following operations:
+ * + Control the high voltage generation, interacting with the power board: PCB/26-351;
+ * + Control a mAs-meter circuit that integrate the anodic current flowing in the X-RAY tube;
+ * + Control the external Anode Starter Device through a dedicated set of Input/Outputs;
+ * + Control a synch digital interface to synchronize the exposure sequence with the external Detector device;
+ * + Control a synch digital interface to synchronize the exposure sequence with the external Filament device;
+ * 
+ * The board implement a CAN based communication protocol to communicate 
+ * with the MAIN CPU of the system with a Slave role.
+ * 
+ * # CAN BUS Communication 
+ * 
+ * ## Bootloader 
+ * The firmware shall implement the bootloader interface integrated in the Can Bus Protocol,
+ * as described in the Device Can Bus protocol specification
+ * 
+ * ## Communication details
+ * The board shall be assigned to the following ID Addresses:
+ * + Bootloader ID: 0x159;
+ * + Application ID: 0x19;
+ * 
+ * # mAs-Meter Specification
+ * 
+ * ## Anodic Current Integration function
+ * 
+ * + The mAs meter shall integrate the anodic current signal detected by the dedicated input.
+ * + The Integration shall quickly notify the complete integration event to reduce the counting error below 1%
+ * + The integration shall early terminate in error if a timeout should expire.
+ *  + In case of Timeout event the partial integration count shall be provided. 
+ * 
+ * ## mAs monitoring and fault detection
+ * 
+ * During the Idle time the mAs meter shall be monitored to detect possible malfunctions
+ * or bad calibration status.
+ * 
+ * 
+ * ## mAs calibration
+ * The mAs-meter shall be calibrated to provide the best performances 
+ *
+ * ## CAN Interface Commands
+ * 
+ * The Firmware shall implement a set of commands a data register in the 
+ * CAN protocol communication in order to:
+ * 
+ * + Test the mAs-meter integration performances;
+ * + Monitor the mAs-meter malfunctions;
+ * + Calibrate the mAs-meter.
+ * 
+ * # High Speed Starter Specification 
+ * 
+ * ## High Speed Activation
+ * The Firmware shall implement functions to activated 
+ * the external High Speed Starter device at the High Speed Rate.
+ * 
+ * The Firmware shall handle a Timeout to stop the rotation after a predefined 
+ * time. The timer may be reset by the Master Software (MCPU) through interface commands (Can Bus)
+ * 
+ * ## Low Speed Activation
+ * The Firmware shall implement functions to activated 
+ * the external High Speed Starter device at low speed rate
+ * 
+ * The Firmware shall handle a Timeout to stop the rotation after a predefined 
+ * time. The timer may be reset by the Master Software (MCPU) through interface commands (Can Bus)
+ * 
+ * ## Speed Rate Control
+ * The Firmware shall detect the current speed level of the rotating anode
+ * 
+ * During any exposure sequence the exposure shall not start if the 
+ * expected speed rate shouldn't be detected. 
+ * 
+ * ## Diagnostic Monitoring
+ * The Firmware shall implement functions to handle 
+ * fault conditions signaled by the High Speed Starter Device.
+ * 
+ * ## Service Test  
+ * The Firmware shall implement functions let the Master Software (MCPU) 
+ * to directly activate the Starter device with Interface command (CAN Bus)
+ * for test purpose.
+ * 
+ * 
+  
  * 
  */
 
-
 /*!
- * \defgroup  applicationConstants Application Constants section
+ * \defgroup  descriptionGroup Firmware Requirements Description
  * 
- * \ingroup applicationModule
  */
 
-
 /*!
- * \defgroup  libraryModules Library Modules Used in the Application.
+ * \defgroup  implementationGroup Firmware Module Implementation
+ * 
  */
 
 
@@ -21,137 +105,13 @@
  *
  * # Overview
  *
- * This Firmware implements the functions of the PCB/22-303 device  software specification.
+ * This Firmware implements the functions of the PCB/25-349 following the 
+ * firmware requirement specifications.
  * 
+ * + \ref specificationGroup
+ * + \ref descriptionGroup
+ * + \ref implementationGroup
  * 
- * # CONFIGURATION SETTING
- * 
- * ## BOOTLOADER object link
- * 
- * This application links the FW303_BOOT.xx.yy.hex as a loadable object;
- * 
- * ## SHARED RAM AREA DEFINITION
- * 
- * The Application reserves 16 byte of RAM for the Bootloader shared area
- * 
- * ```text
- * Menu-Production
- * - Set Project Configuration
- *    - Customize ..
- *        - XC32 Global Options
- *            - XC32-ld
- *                - Additional options: -DRAM_ORIGIN=0x20000010,-DRAM_LENGTH=0x3FFF0 
- * 
- *   ```
- * 
- * 
- * ## HARMONY 3 REVISION PACK 
- * 
- * The Application has been developed with the use of the Microchip Harmony 3
- * libraries with the following revision codes: (see config/default/harmony-manifest-success.yml)
- * 
- *  - mcc_version: v5.3.0
- *  - mcc_core_version: v5.5.0
- *  - mplabx_version: v6.05        # if MPLAB X plugin only
- *  - harmony_version: v1.3.0
- *  - compiler: XC32 (v3.01) 
- *
- *  - modules:
- *       - {name: "csp", version: "v3.9.1"}
- *       - {name: "dev_packs", version: "v3.9.0"}
- *
- * ## PERIPHERAL CONFIGURATION
- * 
- * ### CLOCK GENERATOR CONFIGURATION
- * 
- * + DFLL: set to 48MHz Open Loop Mode;
- * + GLK1: input = DFLL, output = 48MHz;
- * + FDPLL0: input = GLK1, output = 120MHz;
- * + GLK0: input = FDPLL0, output = 120MHz;
- * + GLK2: input = DFLL, output = 8MHz;
- * + GLK4: input = DFLL, output = 24MHz;
- * 
- * ### PERIPHERAL CLOCK CONFIGURATION
- * 
- * + CPU : input = GLK0, output = 120MHz;
- * + CAN0: input = GLK4; output = 24MHz;
- * + TCO,TC1 : input = GLK2, output = 8MHz;
- * 
- *  ### MCC SYSTEM configuration
- * 
- * ```text
- * Device & Project Configuration
- *    - Project Configuration
- *        - Tool ChainSelections
- *            - XC32 Global Options
- *                - Linker
- *                    - Symbols & Macros
- *                        - Application Start Address (Hex) = 0x2000
- * 
- * Device & Project Configuration
- *      - ATSAME51J20A Device Configuration/Fuse settings:
- *              - Number Of Phisical NVM Blocks Composing a SmartEEPROM Sector = 1;
- *              - Size Of SmartEEPROM Page = 1;
- * 
- * ```
- * 
- * ### MCC CAN0 configuration
- * 
- * 
- * + CAN Operational Mode = NORMAL;
- * + Interrupt Mode: Yes;
- * + Bit Timing Calculation
- *  + Nominal Bit Timing
- *      + Automatic Nominal Bit Timing: Yes;
- *      + BIt Rate: 1000
- * 
- * + Use RX FIFO 0: Yes
- *   + RX FIFO 0 Setting
- *      + Number of element: 1
- * 
- * + Use RX FIFO 1: Yes
- *   + RX FIFO 1 Setting
- *      + Number of element: 1
- * 
- * + Standard Filters 
- *  + Number Of STandard Filters: 2
- * 
- *  + Standard Filter 1
- *      + Type: Range;
- *      + ID1: 0x140 + Device ID 
- *      + ID2: 0x140 + Device ID 
- *      + Element Configuration: Store in RX FIFO 0
- * 
- *  + Standard Filter 2
- *      + Type: Range;
- *      + ID1: 0x100 + Device ID  
- *      + ID2: 0x100 + Device ID 
- *      + Element Configuration: Store in RX FIFO 1
- * 
- *  + Reject Standard Remote Frames: YES
- * 
- *  + Timestamp Enable: YES 
- * 
- * ### TC0 CONFIGURATION
- * 
- * + Counter mode: 16bit mode;
- * + Select Prescaler: GLK_TC;
- * + Operating mode: Timer;
- * + Enable One-Shot mode: yes;
- * + Timer Period Unit: microsecond;
- * + Time: 1 
- * + Enable Timer Period Interrupt: yes;
- *  
- * 
- * # Licensing
- *
- * The Application has been developed with the Microchip Harmony 3 libraries 
- * with the Microchip License Agreement conditions as described in:
- * - @ref licenseAgreement 
- *
- * # Application documentation
- * 
- * This documentation has been produced with Doxygen 
  */
 
 
