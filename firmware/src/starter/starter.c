@@ -20,8 +20,8 @@
 #define LS_COMMAND_TMO_ms 3000
 
 // Definisce la logica di attivazione del pin di impostazione della velocità
-#define SET_HS_SPEED uC_STARTER_SPEED_Clear()
-#define SET_LS_SPEED uC_STARTER_SPEED_Set()
+#define SET_HS_SPEED uC_STARTER_SPEED_Clear(); Starter_Data.speed_output=0;
+#define SET_LS_SPEED uC_STARTER_SPEED_Set(); Starter_Data.speed_output=1;
 #define HS_SPEED_MODE true
 #define LS_SPEED_MODE false
 
@@ -64,9 +64,9 @@ void SetRunMode(bool stat){
 }
 
 void SetSpeedMode(bool mode){
-    if(mode==HS_SPEED_MODE) SET_HS_SPEED;
-    else   SET_LS_SPEED;
-    Starter_Data.speed_output = uC_STARTER_SPEED_Get();    
+    if(mode==HS_SPEED_MODE) {SET_HS_SPEED;}
+    else   {SET_LS_SPEED;}
+       
     SystemStatusRegister.starter_speed_mode_output = Starter_Data.speed_output;
     encodeStatusRegister(&SystemStatusRegister); 
 }
@@ -167,6 +167,8 @@ void StarterHandleResetFault(void){
 
 }
 void StarterHandleHsRun(void){
+    unsigned short val;
+    
    // Nessun comando viene processato durante il blanking timer
     if(Starter_Data.command.blanking_timer){
         Starter_Data.command.blanking_timer--;
@@ -211,7 +213,8 @@ void StarterHandleHsRun(void){
                 Starter_Data.command.executed = true;
                 Starter_Data.command.blanking_timer = 0;
                 Starter_Data.command.sequence = 0;
-                Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(StarterParamRegister.HS_Timeout_L + 256 * StarterParamRegister.HS_Timeout_H);
+                val = (unsigned short) StarterParamRegister.HS_Timeout_L + 256 * (unsigned short) StarterParamRegister.HS_Timeout_H;
+                Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(val);
                 // Set dei led LS,  HS
                 SetLeds(LED_OFF, LED_ON);    
                 return;
@@ -240,6 +243,8 @@ void StarterHandleHsRun(void){
 }
 
 void StarterHandleLsRun(void){
+    unsigned short val;
+    
  // Nessun comando viene processato durante il blanking timer
     if(Starter_Data.command.blanking_timer){
         Starter_Data.command.blanking_timer--;
@@ -284,7 +289,8 @@ void StarterHandleLsRun(void){
                 Starter_Data.command.executed = true;
                 Starter_Data.command.blanking_timer = 0;
                 Starter_Data.command.sequence = 0;
-                Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(StarterParamRegister.LS_Timeout_L + 256 * StarterParamRegister.LS_Timeout_H);
+                val = (unsigned short) StarterParamRegister.LS_Timeout_L + 256 * (unsigned short) StarterParamRegister.LS_Timeout_H;
+                Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(val);
                 // Set dei led LS,  HS
                 SetLeds(LED_ON, LED_OFF);    
                 return;
@@ -337,13 +343,14 @@ void rtcStarter15msCallback(void){
     
     // Quando il sistema è in fault solo un comando di reset fault può farlo uscire
     if(Starter_Data.status == STARTER_FAULT_STATUS) {
-        
+        GetFaultInput();
         return;
     }
     
     // Il Device ha attivato il Fault
     if(GetFaultInput()){
-        SetFaultStatus();               
+        SetFaultStatus();     
+        return;
     }
            
     // Durante l'attivazione HS o LS viene gestito il timeout
@@ -383,9 +390,9 @@ void StarterParameterInit(void){
     
     // Inizializzazione parametri di default
     StarterParamRegister.HS_Timeout_L = (unsigned char) DEFAULT_HS_TIMEOUT_s;
-    StarterParamRegister.HS_Timeout_H = (unsigned char) (DEFAULT_HS_TIMEOUT_s>>8);
+    StarterParamRegister.HS_Timeout_H = (unsigned char) ((unsigned short) DEFAULT_HS_TIMEOUT_s>>8);
     StarterParamRegister.LS_Timeout_L = (unsigned char) DEFAULT_LS_TIMEOUT_s;
-    StarterParamRegister.LS_Timeout_H = (unsigned char) (DEFAULT_LS_TIMEOUT_s>>8);
+    StarterParamRegister.LS_Timeout_H = (unsigned char) ((unsigned short) DEFAULT_LS_TIMEOUT_s>>8);
     
     canreg = (REGISTER_STRUCT_t*) & StarterParamRegister;
     
@@ -448,7 +455,7 @@ void StarterInit(void){
     // si attiva la procedura di reset, ma solo all'esaurimento del blanking timer
     if(Starter_Data.status == STARTER_FAULT_STATUS) StarterResetFault();
     
-    StarterActivateHsRun();
+   
     return;
 }
 
@@ -529,6 +536,9 @@ int StarterActivateHsRun(void){
     // Il flag di rotazone ok viene azzerato
     Starter_Data.speed_ok = false;
     
+    // Aggiorna il valore del parametro
+    decodeParamRegister(&StarterParamRegister);
+    
     // Set dei led LS,  HS
     SetLeds(LED_OFF, LED_BLINK);        
     return 0;
@@ -581,6 +591,9 @@ int StarterActivateLsRun(void){
     // Il flag di rotazone ok viene azzerato
     Starter_Data.speed_ok = false;
     
+    // Aggiorna il valore del parametro
+    decodeParamRegister(&StarterParamRegister);
+    
     // Set dei led LS,  HS
     SetLeds(LED_BLINK, LED_OFF);    
     return 0;
@@ -627,10 +640,17 @@ bool StarterStop(void){
  * 
  */
 void StarterResetTimeout(void){
+    unsigned short val;
+    
+    // Aggiorna il valore del parametro
+    decodeParamRegister(&StarterParamRegister);
+    
     if(Starter_Data.status == STARTER_RUN_LS_STATUS){
-        Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(StarterParamRegister.LS_Timeout_L + 256 * StarterParamRegister.LS_Timeout_H);
+        val = (unsigned short) StarterParamRegister.LS_Timeout_L + 256 * (unsigned short) StarterParamRegister.LS_Timeout_H;
+        Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(val);
     }else if(Starter_Data.status == STARTER_RUN_HS_STATUS){
-        Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(StarterParamRegister.HS_Timeout_L + 256 * StarterParamRegister.HS_Timeout_H);
+        val = (unsigned short) StarterParamRegister.HS_Timeout_L + 256 * (unsigned short) StarterParamRegister.HS_Timeout_H;
+        Starter_Data.command.activation_timeout_tk = SEC_TO_TICK(val);
     }
     return;
 }

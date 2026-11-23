@@ -28,10 +28,10 @@ typedef struct {
     
 
 typedef enum{
-    MET_CAN_APP_DEVICE_ID    =  0x19,      //!< Application DEVICE CAN Id address
+    MET_CAN_APP_DEVICE_ID    =  0x19,     //!< Application DEVICE CAN Id address
     MET_CAN_STATUS_REGISTERS =  3,        //!< Defines the total number of implemented STATUS registers 
     MET_CAN_DATA_REGISTERS   =  1,        //!< Defines the total number of implemented Application DATA registers 
-    MET_CAN_PARAM_REGISTERS  =  1       //!< Defines the total number of implemented PARAMETER registers 
+    MET_CAN_PARAM_REGISTERS  =  2         //!< Defines the total number of implemented PARAMETER registers 
 }PROTOCOL_DEFINITION_DATA_t;
 
 
