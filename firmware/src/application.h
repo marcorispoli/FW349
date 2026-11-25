@@ -84,8 +84,45 @@
  * to directly activate the Starter device with Interface command (CAN Bus)
  * for test purpose.
  * 
+ * ## CAN Interface Commands
+ * The Firmware shall implement command and data register to 
+ * directly control the Starter device activation and its behavior.
  * 
-  
+ * # Exposure Sequences
+ * 
+ * The firmware shall implement the main exposure sequences
+ * as follow listed:
+ * + The Standard Manual 2D exposure
+ * + The AEC guided 2D exposure
+ * + The Standard Tomo exposure
+ * + The AEC guided Tomo exposure
+ * 
+ * ## High Voltage Control
+ * 
+ * ## External Synchronization with Detector devices
+ * 
+ * ## External Synchronization with Grid devices
+ * 
+ * ## External synchronization with Filament device
+ * 
+ * ## Internal mAsmeter activation
+ * 
+ * ## Internal Starter device control
+ * 
+ * ## Exposure Manual 2D
+ * 
+ * ## Exposure AEC - 2D
+ * 
+ * ## Exposure Tomo manual
+ * 
+ * ## Exposure AEC - Tomo
+ * 
+ * ## Diagnostic
+ * 
+ * ## CAN Bus Interface
+ * 
+ * 
+ * 
  * 
  */
 
